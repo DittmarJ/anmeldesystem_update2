@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferienprogramm - Tagesanmeldung</title>
+    <!-- Lade Tailwind CSS über CDN für schnelles Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Angepasste Schriftart */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Heller Hintergrund */
+            color: #334155; /* Dunklerer Text */
+        }
+        /* Zusätzliche Styling-Anpassungen, falls nötig */
+        .admin-nav-item {
+            @apply px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition duration-150 ease-in-out cursor-pointer;
+        }
+        .admin-nav-item.active {
+            @apply bg-indigo-200 text-indigo-800;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <!-- Zeigt die Benutzer-ID an -->
+    <div class="fixed top-4 left-4 bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-xs shadow-md">
+        Deine Benutzer-ID: <span id="display-user-id" class="font-mono text-blue-700">Wird geladen...</span>
+    </div>
+
+    <div class="bg-white p-6 sm:p-8 lg:p-10 rounded-xl shadow-2xl w-full max-w-md md:max-w-lg lg:max-w-xl">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-indigo-700 mb-6">Tagesanmeldung Ferienprogramm</h1>
+
+        <!-- Token-Eingabebereich -->
+        <div id="token-section" class="space-y-4">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Zugang zum Anmeldeformular</h2>
+            <label for="token-input" class="block text-lg font-medium text-gray-700 mb-2">
+                Bitte geben Sie Ihren Zugangstoken ein:
+            </label>
+            <input
+                type="password"
+                id="token-input"
+                placeholder="Token eingeben"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base"
+            >
+            <button
+                id="submit-token"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+            >
+                Absenden
+            </button>
+            <p id="token-error" class="text-red-600 text-sm mt-3 hidden text-center">
+                Falscher Token. Bitte versuchen Sie es erneut.
+            </p>
+        </div>
+
+        <!-- Anmeldeformularbereich (initial versteckt) -->
+        <div id="registration-section" class="space-y-6 hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Anmeldung der Kinder</h2>
+            <form id="registration-form" class="space-y-6">
+                <div id="children-container" class="space-y-6">
+                    <!-- Felder für Kind 1 werden hier initial gerendert und weitere dynamisch hinzugefügt -->
+                    <div class="child-entry bg-gray-50 p-5 rounded-lg shadow-inner border border-gray-200">
+                        <h3 class="text-xl font-medium text-gray-700 mb-4">Kind 1</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="name-1" class="block text-sm font-medium text-gray-700">Name:</label>
+                                <input type="text" id="name-1" name="children[0][name]" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="vorname-1" class="block text-sm font-medium text-gray-700">Vorname:</label>
+                                <input type="text" id="vorname-1" name="children[0][vorname]" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="strasse-1" class="block text-sm font-medium text-gray-700">Straße:</label>
+                                <input type="text" id="strasse-1" name="children[0][strasse]" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="ort-1" class="block text-sm font-medium text-gray-700">Ort:</label>
+                                <input type="text" id="ort-1" name="children[0][ort]" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label for="tel-1" class="block text-sm font-medium text-gray-700">Telefon:</label>
+                            <input type="tel" id="tel-1" name="children[0][tel]" pattern="[0-9]+" title="Bitte nur Zahlen eingeben" required
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div class="mt-4">
+                            <label for="alleine-1" class="block text-sm font-medium text-gray-700">Darf alleine nach Hause?</label>
+                            <select id="alleine-1" name="children[0][alleine]" required
+                                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="Nein">Nein</option>
+                                <option value="Ja">Ja</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 relative">
+                    <button
+                        type="button"
+                        id="add-child"
+                        class="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+                    >
+                        Weiteres Kind hinzufügen
+                    </button>
+                    <button
+                        type="submit"
+                        class="w-full sm:w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+                    >
+                        Anmeldung absenden
+                    </button>
+                </div>
+            </form>
+            <!-- Meldungsbox für Erfolgs- oder Fehlermeldungen -->
+            <div id="message-box" class="hidden p-4 rounded-lg text-center mt-4"></div>
+        </div>
+
+        <!-- Admin-Login-Bereich (initial versteckt) -->
+        <div id="admin-login-section" class="space-y-6 hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Admin Login</h2>
+            <form id="admin-login-form" class="space-y-6">
+                <div>
+                    <label for="username" class="block text-lg font-medium text-gray-700 mb-2">Benutzername:</label>
+                    <input
+                        type="text"
+                        id="username"
+                        placeholder="Benutzername eingeben"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base"
+                        required
+                    >
+                </div>
+                <div>
+                    <label for="password" class="block text-lg font-medium text-gray-700 mb-2">Passwort:</label>
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Passwort eingeben"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base"
+                        required
+                    >
+                </div>
+                <button
+                    type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+                >
+                    Login
+                </button>
+                <p id="login-error" class="text-red-600 text-sm mt-3 hidden text-center">
+                    Falscher Benutzername oder falsches Passwort.
+                </p>
+            </form>
+        </div>
+
+        <!-- Admin-Dashboard-Bereich (initial versteckt) -->
+        <div id="admin-dashboard-section" class="space-y-6 hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Admin Dashboard</h2>
+
+            <!-- Admin Navigationsleiste -->
+            <nav class="flex flex-wrap justify-center sm:justify-start gap-2 bg-gray-100 p-2 rounded-lg shadow-sm mb-6">
+                <span id="nav-teilnehmerliste" class="admin-nav-item active">Teilnehmerliste</span>
+                <span id="nav-token-aendern" class="admin-nav-item">Token ändern</span>
+                <span id="nav-platzanzahl" class="admin-nav-item">Platzanzahl</span>
+                <span id="nav-admins-hinzufuegen" class="admin-nav-item">Weitere Admins hinzufügen</span>
+            </nav>
+
+            <!-- Inhalte des Admin-Dashboards -->
+            <div id="admin-content-teilnehmerliste" class="admin-content-pane">
+                <h3 class="text-xl font-semibold text-gray-700 mb-3">Registrierte Personen</h3>
+                <p id="loading-registrations" class="text-center text-gray-600">Lade Anmeldungen...</p>
+                <div id="registrations-list" class="space-y-4">
+                    <!-- Registrierungsdaten werden hier dynamisch eingefügt -->
+                </div>
+                <button
+                    id="download-excel-button"
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 mt-6"
+                >
+                    Als CSV herunterladen
+                </button>
+            </div>
+
+            <div id="admin-content-token-aendern" class="admin-content-pane hidden">
+                <h3 class="text-xl font-semibold text-gray-700 mb-3">Tokens ändern</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="new-registration-token" class="block text-sm font-medium text-gray-700">Neuer Registrierungs-Token:</label>
+                        <input type="text" id="new-registration-token" placeholder="Neuer Token für Anmeldungen"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="new-admin-token" class="block text-sm font-medium text-gray-700">Neuer Admin-Token:</label>
+                        <input type="text" id="new-admin-token" placeholder="Neuer Token für Admin-Login"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <button id="save-tokens-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                        Tokens speichern
+                    </button>
+                    <p id="token-settings-message" class="text-center text-sm mt-2"></p>
+                </div>
+            </div>
+
+            <div id="admin-content-platzanzahl" class="admin-content-pane hidden">
+                <h3 class="text-xl font-semibold text-gray-700 mb-3">Platzanzahl festlegen</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="available-spots-input" class="block text-sm font-medium text-gray-700">Anzahl verfügbarer Plätze:</label>
+                        <input type="number" id="available-spots-input" min="0" value="0"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <button id="save-spots-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                        Platzanzahl speichern
+                    </button>
+                    <p id="spots-settings-message" class="text-center text-sm mt-2"></p>
+                </div>
+            </div>
+
+            <div id="admin-content-admins-hinzufuegen" class="admin-content-pane hidden">
+                <h3 class="text-xl font-semibold text-gray-700 mb-3">Weitere Admins hinzufügen</h3>
+                <p class="text-gray-600 text-sm">
+                    Das Hinzufügen weiterer Admins erfordert eine komplexere Backend-Implementierung
+                    zur Benutzerverwaltung (z.B. über Firebase Authentication mit Benutzerrollen oder Cloud Functions).
+                    Diese Funktion ist in dieser Frontend-Anwendung nicht direkt umsetzbar.
+                </p>
+            </div>
+
+            <button
+                id="admin-logout-button"
+                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 mt-6"
+            >
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, getDoc, setDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Konfiguration (wird vom Canvas-Host injiziert)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Firebase Initialisierung
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        let userId = 'anon-user'; // Standardwert, wird nach Auth aktualisiert
+
+        // App-spezifische Tokens und Einstellungen (werden aus Firestore geladen)
+        let currentRegistrationToken = "FERIEN2025"; // Standardwert
+        let currentAdminToken = "Admin"; // Standardwert
+        let availableSpots = 0; // Standardwert
+
+        // DOM-Elemente abrufen
+        const tokenSection = document.getElementById('token-section');
+        const registrationSection = document.getElementById('registration-section');
+        const adminLoginSection = document.getElementById('admin-login-section');
+        const adminDashboardSection = document.getElementById('admin-dashboard-section');
+
+        const tokenInput = document.getElementById('token-input');
+        const submitTokenButton = document.getElementById('submit-token');
+        const tokenError = document.getElementById('token-error');
+
+        const addChildButton = document.getElementById('add-child');
+        const childrenContainer = document.getElementById('children-container');
+        const registrationForm = document.getElementById('registration-form');
+        const messageBox = document.getElementById('message-box');
+
+        const adminLoginForm = document.getElementById('admin-login-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginError = document.getElementById('login-error');
+
+        const registrationsList = document.getElementById('registrations-list');
+        const loadingRegistrations = document.getElementById('loading-registrations');
+        const adminLogoutButton = document.getElementById('admin-logout-button');
+        const displayUserId = document.getElementById('display-user-id');
+        const downloadExcelButton = document.getElementById('download-excel-button'); // Neuer Button
+
+        // Admin Dashboard Navigation und Inhalte
+        const navItems = document.querySelectorAll('.admin-nav-item');
+        const adminContentPanes = document.querySelectorAll('.admin-content-pane');
+
+        const navTeilnehmerliste = document.getElementById('nav-teilnehmerliste');
+        const navTokenAendern = document.getElementById('nav-token-aendern');
+        const navPlatzanzahl = document.getElementById('nav-platzanzahl');
+        const navAdminsHinzufuegen = document.getElementById('nav-admins-hinzufuegen');
+
+        const adminContentTeilnehmerliste = document.getElementById('admin-content-teilnehmerliste');
+        const adminContentTokenAendern = document.getElementById('admin-content-token-aendern');
+        const adminContentPlatzanzahl = document.getElementById('admin-content-platzanzahl');
+        const adminContentAdminsHinzufuegen = document.getElementById('admin-content-admins-hinzufuegen');
+
+        const newRegistrationTokenInput = document.getElementById('new-registration-token');
+        const newAdminTokenInput = document.getElementById('new-admin-token');
+        const saveTokensButton = document.getElementById('save-tokens-button');
+        const tokenSettingsMessage = document.getElementById('token-settings-message');
+
+        const availableSpotsInput = document.getElementById('available-spots-input');
+        const saveSpotsButton = document.getElementById('save-spots-button');
+        const spotsSettingsMessage = document.getElementById('spots-settings-message');
+
+        let childCount = 1;
+        let unsubscribeFromRegistrations = null; // Für das Abmelden des Firestore Listeners
+        let allRegistrationsData = []; // Speichert die Daten für den Excel-Export
+
+        // Admin Zugangsdaten (nur für Demo, in Produktion sicher verwalten!)
+        const adminUsername = "admin";
+        const adminPassword = "password123";
+
+        /**
+         * Zeigt eine Meldung an und passt das Styling an.
+         * @param {string} message - Der anzuzeigende Text.
+         * @param {boolean} isSuccess - True für Erfolgsmeldung (grün), False für Fehlermeldung (rot).
+         * @param {HTMLElement} targetElement - Das Element, in dem die Nachricht angezeigt werden soll.
+         */
+        function showMessage(message, isSuccess, targetElement = messageBox) {
+            targetElement.textContent = message;
+            targetElement.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-yellow-100', 'text-yellow-800');
+            if (isSuccess === true) {
+                targetElement.classList.add('bg-green-100', 'text-green-800');
+            } else if (isSuccess === false) {
+                targetElement.classList.add('bg-red-100', 'text-red-800');
+            } else { // Neutral/Info
+                targetElement.classList.add('bg-yellow-100', 'text-yellow-800');
+            }
+            targetElement.classList.remove('hidden');
+        }
+
+        /**
+         * Versteckt alle Hauptbereiche außer dem angegebenen.
+         * @param {HTMLElement} sectionToShow - Der Bereich, der angezeigt werden soll.
+         */
+        function showSection(sectionToShow) {
+            tokenSection.classList.add('hidden');
+            registrationSection.classList.add('hidden');
+            adminLoginSection.classList.add('hidden');
+            adminDashboardSection.classList.add('hidden');
+            tokenError.classList.add('hidden');
+            messageBox.classList.add('hidden');
+            tokenInput.value = '';
+
+            // Wenn der Admin-Dashboard nicht angezeigt wird, Listener abmelden
+            if (sectionToShow !== adminDashboardSection && unsubscribeFromRegistrations) {
+                unsubscribeFromRegistrations();
+                unsubscribeFromRegistrations = null;
+                console.log("Firestore registrations listener unsubscribed.");
+            }
+            sectionToShow.classList.remove('hidden');
+        }
+
+        /**
+         * Wechselt den aktiven Bereich im Admin-Dashboard.
+         * @param {string} paneId - Die ID des anzuzeigenden Inhaltsbereichs.
+         */
+        function showAdminPane(paneId) {
+            adminContentPanes.forEach(pane => pane.classList.add('hidden'));
+            document.getElementById(paneId).classList.remove('hidden');
+
+            navItems.forEach(item => item.classList.remove('active'));
+            document.getElementById(`nav-${paneId.replace('admin-content-', '')}`).classList.add('active');
+
+            // Spezifische Aktionen beim Wechseln des Panes
+            if (paneId === 'admin-content-teilnehmerliste') {
+                loadRegistrations(); // Listener erneut abonnieren, falls abgemeldet
+            } else if (paneId === 'admin-content-token-aendern') {
+                newRegistrationTokenInput.value = currentRegistrationToken;
+                newAdminTokenInput.value = currentAdminToken;
+                tokenSettingsMessage.classList.add('hidden');
+            } else if (paneId === 'admin-content-platzanzahl') {
+                availableSpotsInput.value = availableSpots;
+                spotsSettingsMessage.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Authentifiziert den Benutzer bei Firebase.
+         */
+        async function authenticateFirebase() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Firebase Authentifizierung fehlgeschlagen:", error);
+                showMessage("Fehler bei der Authentifizierung. Bitte versuchen Sie es später erneut.", false);
+            }
+        }
+
+        // Listener für den Authentifizierungsstatus
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userId = user.uid;
+                displayUserId.textContent = userId;
+                console.log("Firebase User ID:", userId);
+                // Laden der Einstellungen nach erfolgreicher Authentifizierung
+                loadProgramSettings();
+            } else {
+                userId = 'anon-user';
+                displayUserId.textContent = 'Nicht angemeldet';
+                console.log("Firebase: Benutzer ist abgemeldet oder anonym.");
+            }
+        });
+
+        // Beim Laden der Seite Firebase authentifizieren
+        authenticateFirebase();
+
+        /**
+         * Lädt globale Programmeinstellungen (Tokens, Platzanzahl) aus Firestore.
+         */
+        async function loadProgramSettings() {
+            if (!db) {
+                console.error("Firestore ist nicht initialisiert.");
+                return;
+            }
+            try {
+                const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings/programSettings`);
+                const settingsDocSnap = await getDoc(settingsDocRef);
+
+                if (settingsDocSnap.exists()) {
+                    const settingsData = settingsDocSnap.data();
+                    currentRegistrationToken = settingsData.registrationToken || "FERIEN2025";
+                    currentAdminToken = settingsData.adminToken || "Admin";
+                    availableSpots = settingsData.availableSpots !== undefined ? settingsData.availableSpots : 0;
+                    console.log("Programmeinstellungen geladen:", settingsData);
+                } else {
+                    console.log("Programmeinstellungen-Dokument existiert nicht. Erstelle mit Standardwerten.");
+                    // Erstelle das Dokument mit Standardwerten, wenn es nicht existiert
+                    await setDoc(settingsDocRef, {
+                        registrationToken: currentRegistrationToken,
+                        adminToken: currentAdminToken,
+                        availableSpots: availableSpots
+                    });
+                }
+            } catch (error) {
+                console.error("Fehler beim Laden der Programmeinstellungen:", error);
+                showMessage("Fehler beim Laden der Einstellungen. Standardwerte werden verwendet.", false);
+            }
+        }
+
+        /**
+         * Speichert globale Programmeinstellungen in Firestore.
+         * @param {object} updates - Ein Objekt mit den zu aktualisierenden Feldern.
+         * @param {HTMLElement} messageTarget - Element für die Statusmeldung.
+         */
+        async function saveProgramSettings(updates, messageTarget) {
+            if (!db || !auth.currentUser) {
+                showMessage("Fehler: Datenbank oder Authentifizierung nicht bereit.", false, messageTarget);
+                return;
+            }
+            try {
+                const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings/programSettings`);
+                await updateDoc(settingsDocRef, updates);
+                await loadProgramSettings(); // Einstellungen neu laden, um Werte zu synchronisieren
+                showMessage("Einstellungen erfolgreich gespeichert!", true, messageTarget);
+            } catch (error) {
+                console.error("Fehler beim Speichern der Einstellungen:", error);
+                showMessage("Fehler beim Speichern der Einstellungen.", false, messageTarget);
+            }
+        }
+
+        /**
+         * Lädt und zeigt die registrierten Personen vom Firestore an.
+         */
+        function loadRegistrations() {
+            if (!db || !auth.currentUser) {
+                console.error("Firestore oder Authentifizierung nicht bereit.");
+                loadingRegistrations.textContent = "Daten konnten nicht geladen werden. Bitte versuchen Sie es erneut.";
+                return;
+            }
+
+            loadingRegistrations.classList.remove('hidden');
+            registrationsList.innerHTML = ''; // Vorhandene Einträge löschen
+            allRegistrationsData = []; // Daten für den Export zurücksetzen
+
+            // Erstelle einen Query, um die Daten aus der 'registrations' Sammlung zu holen
+            const q = query(collection(db, `artifacts/${appId}/public/data/registrations`));
+
+            // Abonniere Echtzeit-Updates
+            // Stelle sicher, dass nur ein Listener aktiv ist
+            if (unsubscribeFromRegistrations) {
+                unsubscribeFromRegistrations();
+            }
+
+            unsubscribeFromRegistrations = onSnapshot(q, (snapshot) => {
+                loadingRegistrations.classList.add('hidden');
+                if (snapshot.empty) {
+                    registrationsList.innerHTML = '<p class="text-center text-gray-500">Noch keine Anmeldungen vorhanden.</p>';
+                    return;
+                }
+
+                registrationsList.innerHTML = ''; // Liste vor dem Rendern leeren
+                allRegistrationsData = []; // Daten für den Export zurücksetzen bei jedem Update
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const registrationId = doc.id; // Dokument-ID
+
+                    // Überprüfe, ob 'children' ein Array ist und verarbeite es
+                    if (Array.isArray(data.children) && data.children.length > 0) {
+                        data.children.forEach((child, index) => {
+                            const childDiv = document.createElement('div');
+                            childDiv.classList.add('bg-gray-50', 'p-4', 'rounded-lg', 'shadow-sm', 'border', 'border-gray-200', 'mb-2');
+                            childDiv.innerHTML = `
+                                <h4 class="text-lg font-bold text-gray-800 mb-2">Kind ${index + 1}: ${child.vorname} ${child.name}</h4>
+                                <p class="text-sm text-gray-600"><strong>Straße:</strong> ${child.strasse}</p>
+                                <p class="text-sm text-gray-600"><strong>Ort:</strong> ${child.ort}</p>
+                                <p class="text-sm text-gray-600"><strong>Telefon:</strong> ${child.telefon}</p>
+                                <p class="text-sm text-gray-600"><strong>Alleine nach Hause:</strong> ${child.alleineNachHause}</p>
+                                <p class="text-xs text-gray-400 mt-2">Anmeldung ID: ${registrationId}</p>
+                                <p class="text-xs text-gray-400">Registriert von: ${data.registeredBy || 'Unbekannt'}</p>
+                                <p class="text-xs text-gray-400">Zeitpunkt: ${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'N/A'}</p>
+                            `;
+                            registrationsList.appendChild(childDiv);
+
+                            // Daten für den Excel-Export hinzufügen
+                            allRegistrationsData.push({
+                                name: child.name,
+                                vorname: child.vorname,
+                                strasse: child.strasse,
+                                ort: child.ort,
+                                telefon: child.telefon,
+                                alleineNachHause: child.alleineNachHause,
+                                bezahlt: "Ja" // Das Feld "Bezahlt?" immer mit "Ja" füllen
+                            });
+                        });
+                    } else {
+                        // Fallback für Daten ohne "children"-Array oder leeres Array
+                        const fallbackDiv = document.createElement('div');
+                        fallbackDiv.classList.add('bg-gray-50', 'p-4', 'rounded-lg', 'shadow-sm', 'border', 'border-gray-200', 'mb-2');
+                        fallbackDiv.innerHTML = `
+                            <p class="text-lg font-bold text-gray-800 mb-2">Anmeldung ID: ${registrationId}</p>
+                            <pre class="text-xs text-gray-600 overflow-auto">${JSON.stringify(data, null, 2)}</pre>
+                            <p class="text-xs text-gray-400 mt-2">Registriert von: ${data.registeredBy || 'Unbekannt'}</p>
+                            <p class="text-xs text-gray-400">Zeitpunkt: ${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'N/A'}</p>
+                        `;
+                        registrationsList.appendChild(fallbackDiv);
+                    }
+                });
+            }, (error) => {
+                console.error("Fehler beim Laden der Anmeldungen:", error);
+                loadingRegistrations.textContent = "Fehler beim Laden der Daten.";
+                showMessage("Fehler beim Laden der Anmeldungen. Überprüfen Sie Ihre Firebase-Regeln.", false);
+            });
+        }
+
+        /**
+         * Exportiert die gesammelten Registrierungsdaten als CSV-Datei.
+         */
+        downloadExcelButton.addEventListener('click', function() {
+            if (allRegistrationsData.length === 0) {
+                showMessage("Keine Daten zum Exportieren vorhanden.", false, messageBox);
+                return;
+            }
+
+            // CSV-Header mit "Straße" und "Bezahlt?"
+            const headers = ["Name", "Vorname", "Straße", "Ort", "Tel.", "Darf alleine nach Hause?", "Bezahlt?"];
+            let csvContent = headers.map(header => `"${header}"`).join(";") + "\n"; // Header mit Semikolon als Trenner und Anführungszeichen
+
+            // Datenzeilen hinzufügen
+            allRegistrationsData.forEach(row => {
+                const rowData = [
+                    `"${row.name}"`,
+                    `"${row.vorname}"`,
+                    `"${row.strasse}"`, // Behalte 'strasse' vom Datenobjekt, ändere nur den Header
+                    `"${row.ort}"`,
+                    `"${row.telefon}"`,
+                    `"${row.alleineNachHause}"`,
+                    `"${row.bezahlt}"`
+                ];
+                csvContent += rowData.join(";") + "\n";
+            });
+
+            // Blob erstellen und Download auslösen
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            // Ändere die Dateiendung zu .xlsx, Excel kann oft CSVs damit öffnen
+            link.setAttribute('download', 'Ferienprogramm_Anmeldungen.csv'); // KORRIGIERT: Dateiendung zu .csv
+            link.style.visibility = 'hidden'; // Link verstecken
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link); // Link entfernen
+            showMessage("Daten erfolgreich als CSV-Datei heruntergeladen! Sie können diese Datei mit Excel öffnen.", true, messageBox);
+        });
+
+        /**
+         * Validiert den eingegebenen Token und zeigt das entsprechende Formular an.
+         */
+        submitTokenButton.addEventListener('click', async function() {
+            const enteredToken = tokenInput.value.trim();
+            tokenError.classList.add('hidden'); // Vorherige Token-Fehlermeldung löschen
+            messageBox.classList.add('hidden'); // Allgemeine Nachrichtenbox leeren
+
+            if (enteredToken === currentAdminToken) {
+                showSection(adminLoginSection);
+                usernameInput.focus();
+                tokenInput.value = ''; // Token-Eingabe leeren
+            } else if (enteredToken === currentRegistrationToken) {
+                if (!db || !auth.currentUser) {
+                    showMessage("Fehler: Datenbank nicht verfügbar. Bitte versuchen Sie es später erneut.", false, tokenError);
+                    tokenInput.value = ''; // Token-Eingabe leeren
+                    return;
+                }
+                try {
+                    const registrationsCollectionRef = collection(db, `artifacts/${appId}/public/data/registrations`);
+                    const registrationsSnapshot = await getDocs(registrationsCollectionRef);
+                    const currentRegistrationsCount = registrationsSnapshot.size;
+
+                    if (availableSpots > 0 && currentRegistrationsCount >= availableSpots) {
+                        showSection(tokenSection); // Bleiben Sie auf dem Token-Bereich
+                        showMessage("Leider sind für heute alle unsere freien Betreuungsplätze bereits belegt.", false, tokenError);
+                        tokenInput.value = ''; // Token-Eingabe leeren
+                        return;
+                    }
+
+                    showSection(registrationSection);
+                    showMessage('Token akzeptiert! Bitte füllen Sie das Anmeldeformular aus.', true);
+                    tokenInput.value = ''; // Token-Eingabe leeren
+                } catch (error) {
+                    console.error("Fehler bei der Platzprüfung:", error);
+                    showMessage("Ein Fehler ist bei der Platzprüfung aufgetreten. Bitte versuchen Sie es erneut.", false, tokenError);
+                    tokenInput.value = ''; // Token-Eingabe leeren
+                }
+            } else {
+                showMessage('Falscher Token. Bitte versuchen Sie es erneut.', false, tokenError);
+                tokenInput.value = ''; // Token-Eingabe leeren
+            }
+        });
+
+        /**
+         * Fügt dynamisch ein neues Set von Feldern für ein weiteres Kind hinzu.
+         */
+        addChildButton.addEventListener('click', function() {
+            childCount++; // Kinderzähler erhöhen
+            const newChildEntry = document.createElement('div');
+            newChildEntry.classList.add('child-entry', 'bg-gray-50', 'p-5', 'rounded-lg', 'shadow-inner', 'border', 'border-gray-200', 'mt-6');
+            newChildEntry.id = `child-${childCount}`;
+            newChildEntry.innerHTML = `
+                <h3 class="text-xl font-medium text-gray-700 mb-4">Kind ${childCount}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="name-${childCount}" class="block text-sm font-medium text-gray-700">Name:</label>
+                        <input type="text" id="name-${childCount}" name="children[${childCount-1}][name]" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="vorname-${childCount}" class="block text-sm font-medium text-gray-700">Vorname:</label>
+                        <input type="text" id="vorname-${childCount}" name="children[${childCount-1}][vorname]" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="strasse-${childCount}" class="block text-sm font-medium text-gray-700">Straße:</label>
+                        <input type="text" id="strasse-${childCount}" name="children[${childCount-1}][strasse]" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="ort-${childCount}" class="block text-sm font-medium text-gray-700">Ort:</label>
+                        <input type="text" id="ort-${childCount}" name="children[${childCount-1}][ort]" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label for="tel-${childCount}" class="block text-sm font-medium text-gray-700">Telefon:</label>
+                    <input type="tel" id="tel-${childCount}" name="children[${childCount-1}][tel]" pattern="[0-9]+" title="Bitte nur Zahlen eingeben" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="mt-4">
+                    <label for="alleine-${childCount}" class="block text-sm font-medium text-gray-700">Darf alleine nach Hause?</label>
+                    <select id="alleine-${childCount}" name="children[${childCount-1}][alleine]" required
+                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="Nein">Nein</option>
+                        <option value="Ja">Ja</option>
+                    </select>
+                </div>
+            `;
+            childrenContainer.appendChild(newChildEntry);
+        });
+
+        /**
+         * Behandelt das Absenden des Anmeldeformulars.
+         * Sammelt die Daten und speichert sie in Firestore.
+         */
+        registrationForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            if (!db || !auth.currentUser) {
+                console.error("Firestore ist nicht initialisiert oder Benutzer nicht angemeldet.");
+                showMessage("Fehler: Datenbank nicht verfügbar. Bitte versuchen Sie es später erneut.", false);
+                return;
+            }
+
+            try {
+                const registrationsCollectionRef = collection(db, `artifacts/${appId}/public/data/registrations`);
+                const registrationsSnapshot = await getDocs(registrationsCollectionRef);
+                const currentRegistrationsCount = registrationsSnapshot.size;
+
+                if (availableSpots > 0 && currentRegistrationsCount >= availableSpots) {
+                    showMessage("Leider sind für heute alle unsere freien Betreuungsplätze bereits belegt.", false);
+                    return;
+                }
+
+                const allChildrenData = [];
+                document.querySelectorAll('.child-entry').forEach((childEntry, index) => {
+                    const childData = {};
+                    childData.name = childEntry.querySelector(`#name-${index + 1}`).value;
+                    childData.vorname = childEntry.querySelector(`#vorname-${index + 1}`).value;
+                    childData.strasse = childEntry.querySelector(`#strasse-${index + 1}`).value;
+                    childData.ort = childEntry.querySelector(`#ort-${index + 1}`).value;
+                    childData.telefon = childEntry.querySelector(`#tel-${index + 1}`).value;
+                    childData.alleineNachHause = childEntry.querySelector(`#alleine-${index + 1}`).value;
+                    allChildrenData.push(childData);
+                });
+
+
+                // Daten in Firestore speichern
+                await addDoc(registrationsCollectionRef, {
+                    registeredBy: userId,
+                    timestamp: new Date(),
+                    children: allChildrenData
+                });
+                showMessage('Anmeldung erfolgreich! Ihre Daten wurden gespeichert.', true);
+                registrationForm.reset();
+                childrenContainer.innerHTML = `
+                    <div class="child-entry bg-gray-50 p-5 rounded-lg shadow-inner border border-gray-200">
+                        <h3 class="text-xl font-medium text-gray-700 mb-4">Kind 1</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="name-1" class="block text-sm font-medium text-gray-700">Name:</label>
+                                <input type="text" id="name-1" name="children[0][name]" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="vorname-1" class="block text-sm font-medium text-gray-700">Vorname:</label>
+                                <input type="text" id="vorname-1" name="children[0][vorname]" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="strasse-1" class="block text-sm font-medium text-gray-700">Straße:</label>
+                                <input type="text" id="strasse-1" name="children[0][strasse]" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="ort-1" class="block text-sm font-medium text-gray-700">Ort:</label>
+                                <input type="text" id="ort-1" name="children[0][ort]" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label for="tel-1" class="block text-sm font-medium text-gray-700">Telefon:</label>
+                            <input type="tel" id="tel-1" name="children[0][tel]" pattern="[0-9]+" title="Bitte nur Zahlen eingeben" required
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div class="mt-4">
+                            <div>
+                                <label for="alleine-1" class="block text-sm font-medium text-gray-700">Darf alleine nach Hause?</label>
+                                <select id="alleine-1" name="children[0][alleine]" required
+                                    class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="Nein">Nein</option>
+                                    <option value="Ja">Ja</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                childCount = 1;
+                setTimeout(() => showSection(tokenSection), 2000);
+            } catch (e) {
+                console.error("Fehler beim Speichern der Anmeldedaten:", e);
+                showMessage("Fehler bei der Anmeldung. Bitte versuchen Sie es erneut.", false);
+            }
+        });
+
+        /**
+         * Behandelt das Absenden des Admin-Login-Formulars.
+         */
+        adminLoginForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const enteredUsername = usernameInput.value;
+            const enteredPassword = passwordInput.value;
+
+            if (enteredUsername === adminUsername && enteredPassword === adminPassword) {
+                showMessage("Admin-Login erfolgreich! Lade Daten...", true);
+                loginError.classList.add('hidden');
+                showSection(adminDashboardSection); // Admin-Dashboard anzeigen
+                showAdminPane('admin-content-teilnehmerliste'); // Standardmäßig Teilnehmerliste anzeigen
+            } else {
+                loginError.classList.remove('hidden');
+                showMessage("Falscher Benutzername oder falsches Passwort.", false);
+            }
+        });
+
+        // Event Listener für Admin-Dashboard Navigation
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const paneId = `admin-content-${this.id.replace('nav-', '')}`;
+                showAdminPane(paneId);
+            });
+        });
+
+        /**
+         * Behandelt das Speichern der Tokens im Admin-Dashboard.
+         */
+        saveTokensButton.addEventListener('click', async function() {
+            const newRegToken = newRegistrationTokenInput.value.trim();
+            const newAdmToken = newAdminTokenInput.value.trim();
+
+            if (!newRegToken || !newAdmToken) {
+                showMessage("Bitte geben Sie beide Tokens ein.", false, tokenSettingsMessage);
+                return;
+            }
+
+            await saveProgramSettings({ registrationToken: newRegToken, adminToken: newAdmToken }, tokenSettingsMessage);
+            // Tokens werden automatisch durch loadProgramSettings() aktualisiert
+        });
+
+        /**
+         * Behandelt das Speichern der Platzanzahl im Admin-Dashboard.
+         */
+        saveSpotsButton.addEventListener('click', async function() {
+            const spots = parseInt(availableSpotsInput.value, 10);
+
+            if (isNaN(spots) || spots < 0) {
+                showMessage("Bitte geben Sie eine gültige positive Zahl für die Platzanzahl ein.", false, spotsSettingsMessage);
+                return;
+            }
+
+            await saveProgramSettings({ availableSpots: spots }, spotsSettingsMessage);
+            // availableSpots wird automatisch durch loadProgramSettings() aktualisiert
+        });
+
+
+        /**
+         * Behandelt den Logout-Button im Admin-Dashboard.
+         */
+        adminLogoutButton.addEventListener('click', function() {
+            if (unsubscribeFromRegistrations) {
+                unsubscribeFromRegistrations(); // Firestore Listener abmelden
+                unsubscribeFromRegistrations = null;
+            }
+            showSection(tokenSection); // Zurück zum Token-Bereich
+            showMessage('Erfolgreich abgemeldet.', true);
+        });
+    </script>
+</body>
+</html>
