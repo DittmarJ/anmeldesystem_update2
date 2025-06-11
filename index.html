@@ -20,6 +20,35 @@
         .admin-nav-item.active {
             @apply bg-indigo-200 text-indigo-800;
         }
+        .modal {
+            display: none; /* Initial versteckt */
+            position: fixed; /* Über dem Inhalt */
+            z-index: 100; /* Ganz vorne */
+            left: 0;
+            top: 0;
+            width: 100%; /* Volle Breite */
+            height: 100%; /* Volle Höhe */
+            overflow: auto; /* Scrollen, falls nötig */
+            background-color: rgba(0,0,0,0.4); /* Leichter schwarzer Hintergrund */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
@@ -184,6 +213,12 @@
                 >
                     Als CSV herunterladen
                 </button>
+                <button
+                    id="delete-all-registrations-button"
+                    class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 mt-4"
+                >
+                    Alle Anmeldungen löschen
+                </button>
             </div>
 
             <div id="admin-content-token-aendern" class="admin-content-pane hidden">
@@ -239,14 +274,29 @@
         </div>
     </div>
 
+    <!-- Bestätigungsmodal für das Löschen -->
+    <div id="confirmation-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Bestätigung erforderlich</h3>
+            <p class="mb-6">Möchten Sie wirklich **ALLE** registrierten Anmeldungen löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
+            <div class="modal-buttons">
+                <button id="confirm-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    Ja, löschen
+                </button>
+                <button id="cancel-delete-button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    Abbrechen
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, doc, getDoc, setDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, getDoc, setDoc, updateDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase Konfiguration
-        // Dies ist die Konfiguration für dein eigenes Firebase-Projekt, die du von der Firebase Console erhältst.
         const firebaseConfig = {
             apiKey: "AIzaSyCBdMEtnL-QW6H7EWp5flHlhx6IaCGTj-E",
             authDomain: "tagesanmeldungupdate.firebaseapp.com",
@@ -254,22 +304,14 @@
             storageBucket: "tagesanmeldungupdate.firebasestorage.app",
             messagingSenderId: "12808165781",
             appId: "1:12808165781:web:4cb2148f378fcd46613e9c",
-            measurementId: "G-W3M99ZPQT8" // Optional: Nur einfügen, wenn du Google Analytics nutzt
+            measurementId: "G-W3M99ZPQT8"
         };
 
         // Debugging: Logge die geladene Firebase-Konfiguration
         console.log("Geladene Firebase Konfiguration:", firebaseConfig);
 
-        // Die folgenden Variablen (`appId`, `firebaseConfigCanvas`, `initialAuthTokenCanvas`) sind spezifisch für die Canvas-Umgebung
-        // und werden verwendet, wenn die App hier im Workspace ausgeführt wird.
-        // Wenn die App auf GitHub gehostet wird, werden diese ignoriert und die oben definierte `firebaseConfig` verwendet.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id-canvas'; // Hier nur für Kompatibilität mit Canvas-Tests
-        const firebaseConfigCanvas = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}'); // Hier nur für Kompatibilität mit Canvas-Tests
-        const initialAuthTokenCanvas = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // Hier nur für Kompatibilität mit Canvas-Tests
-
-
         // Firebase Initialisierung
-        const app = initializeApp(firebaseConfig); // Initialisiert Firebase mit DEINER Konfiguration
+        const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         let userId = 'anon-user'; // Standardwert, wird nach Auth aktualisiert
@@ -303,7 +345,13 @@
         const loadingRegistrations = document.getElementById('loading-registrations');
         const adminLogoutButton = document.getElementById('admin-logout-button');
         const displayUserId = document.getElementById('display-user-id');
-        const downloadExcelButton = document.getElementById('download-excel-button'); // Neuer Button
+        const downloadExcelButton = document.getElementById('download-excel-button');
+        const deleteAllRegistrationsButton = document.getElementById('delete-all-registrations-button'); // Neuer Button
+
+        // Bestätigungsmodal Elemente
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmDeleteButton = document.getElementById('confirm-delete-button');
+        const cancelDeleteButton = document.getElementById('cancel-delete-button');
 
         // Admin Dashboard Navigation und Inhalte
         const navItems = document.querySelectorAll('.admin-nav-item');
@@ -329,8 +377,8 @@
         const spotsSettingsMessage = document.getElementById('spots-settings-message');
 
         let childCount = 1;
-        let unsubscribeFromRegistrations = null; // Für das Abmelden des Firestore Listeners
-        let allRegistrationsData = []; // Speichert die Daten für den Excel-Export
+        let unsubscribeFromRegistrations = null;
+        let allRegistrationsData = [];
 
         // Admin Zugangsdaten (nur für Demo, in Produktion sicher verwalten!)
         const adminUsername = "admin";
@@ -367,6 +415,7 @@
             tokenError.classList.add('hidden');
             messageBox.classList.add('hidden');
             tokenInput.value = '';
+            confirmationModal.style.display = 'none'; // Immer verstecken
 
             // Wenn der Admin-Dashboard nicht angezeigt wird, Listener abmelden
             if (sectionToShow !== adminDashboardSection && unsubscribeFromRegistrations) {
@@ -407,11 +456,7 @@
          */
         async function authenticateFirebase() {
             try {
-                // Für GitHub-Bereitstellung ist initialAuthTokenCanvas immer null/undefined.
-                // Wir melden uns hier immer anonym an, da dies der vorgesehene Anmeldetyp der App ist.
                 await signInAnonymously(auth);
-                // Optional: Wenn du später andere Authentifizierungsmethoden hinzufügen möchtest (z.B. Google Sign-in),
-                // würdest du hier entsprechende Logik hinzufügen.
             } catch (error) {
                 console.error("Firebase Authentifizierung fehlgeschlagen:", error);
                 showMessage("Fehler bei der Authentifizierung. Bitte stellen Sie sicher, dass 'Anonyme Authentifizierung' in Ihrem Firebase-Projekt aktiviert ist und Ihre Firebase-Konfiguration korrekt ist.", false);
@@ -424,7 +469,6 @@
                 userId = user.uid;
                 displayUserId.textContent = userId;
                 console.log("Firebase User ID:", userId);
-                // Laden der Einstellungen nach erfolgreicher Authentifizierung
                 loadProgramSettings();
             } else {
                 userId = 'anon-user';
@@ -445,8 +489,6 @@
                 return;
             }
             try {
-                // Bei GitHub-Bereitstellung greifen wir direkt auf die "settings"-Sammlung zu.
-                // Der Pfad `artifacts/${appId}/public/data/` ist spezifisch für die Canvas-Umgebung.
                 const settingsDocRef = doc(db, `settings/programSettings`);
                 const settingsDocSnap = await getDoc(settingsDocRef);
 
@@ -458,7 +500,6 @@
                     console.log("Programmeinstellungen geladen:", settingsData);
                 } else {
                     console.log("Programmeinstellungen-Dokument existiert nicht. Erstelle mit Standardwerten.");
-                    // Erstelle das Dokument mit Standardwerten, wenn es nicht existiert
                     await setDoc(settingsDocRef, {
                         registrationToken: currentRegistrationToken,
                         adminToken: currentAdminToken,
@@ -482,10 +523,9 @@
                 return;
             }
             try {
-                // Bei GitHub-Bereitstellung greifen wir direkt auf die "settings"-Sammlung zu.
                 const settingsDocRef = doc(db, `settings/programSettings`);
                 await updateDoc(settingsDocRef, updates);
-                await loadProgramSettings(); // Einstellungen neu laden, um Werte zu synchronisieren
+                await loadProgramSettings();
                 showMessage("Einstellungen erfolgreich gespeichert!", true, messageTarget);
             } catch (error) {
                 console.error("Fehler beim Speichern der Einstellungen:", error);
@@ -504,15 +544,11 @@
             }
 
             loadingRegistrations.classList.remove('hidden');
-            registrationsList.innerHTML = ''; // Vorhandene Einträge löschen
-            allRegistrationsData = []; // Daten für den Export zurücksetzen
+            registrationsList.innerHTML = '';
+            allRegistrationsData = [];
 
-            // Erstelle einen Query, um die Daten aus der 'registrations' Sammlung zu holen.
-            // Bei GitHub-Bereitstellung greifen wir direkt auf die "registrations"-Sammlung zu.
             const q = query(collection(db, `registrations`));
 
-            // Abonniere Echtzeit-Updates
-            // Stelle sicher, dass nur ein Listener aktiv ist
             if (unsubscribeFromRegistrations) {
                 unsubscribeFromRegistrations();
             }
@@ -524,14 +560,13 @@
                     return;
                 }
 
-                registrationsList.innerHTML = ''; // Liste vor dem Rendern leeren
-                allRegistrationsData = []; // Daten für den Export zurücksetzen bei jedem Update
+                registrationsList.innerHTML = '';
+                allRegistrationsData = [];
 
                 snapshot.forEach((doc) => {
                     const data = doc.data();
-                    const registrationId = doc.id; // Dokument-ID
+                    const registrationId = doc.id;
 
-                    // Überprüfe, ob 'children' ein Array ist und verarbeite es
                     if (Array.isArray(data.children) && data.children.length > 0) {
                         data.children.forEach((child, index) => {
                             const childDiv = document.createElement('div');
@@ -548,7 +583,6 @@
                             `;
                             registrationsList.appendChild(childDiv);
 
-                            // Daten für den Excel-Export hinzufügen
                             allRegistrationsData.push({
                                 name: child.name,
                                 vorname: child.vorname,
@@ -556,11 +590,10 @@
                                 ort: child.ort,
                                 telefon: child.telefon,
                                 alleineNachHause: child.alleineNachHause,
-                                bezahlt: "Ja" // Das Feld "Bezahlt?" immer mit "Ja" füllen
+                                bezahlt: "Ja"
                             });
                         });
                     } else {
-                        // Fallback für Daten ohne "children"-Array oder leeres Array
                         const fallbackDiv = document.createElement('div');
                         fallbackDiv.classList.add('bg-gray-50', 'p-4', 'rounded-lg', 'shadow-sm', 'border', 'border-gray-200', 'mb-2');
                         fallbackDiv.innerHTML = `
@@ -588,16 +621,14 @@
                 return;
             }
 
-            // CSV-Header mit "Straße" und "Bezahlt?"
             const headers = ["Name", "Vorname", "Straße", "Ort", "Tel.", "Darf alleine nach Hause?", "Bezahlt?"];
-            let csvContent = headers.map(header => `"${header}"`).join(";") + "\n"; // Header mit Semikolon als Trenner und Anführungszeichen
+            let csvContent = headers.map(header => `"${header}"`).join(";") + "\n";
 
-            // Datenzeilen hinzufügen
             allRegistrationsData.forEach(row => {
                 const rowData = [
                     `"${row.name}"`,
                     `"${row.vorname}"`,
-                    `"${row.strasse}"`, // Behalte 'strasse' vom Datenobjekt, ändere nur den Header
+                    `"${row.strasse}"`,
                     `"${row.ort}"`,
                     `"${row.telefon}"`,
                     `"${row.alleineNachHause}"`,
@@ -606,16 +637,15 @@
                 csvContent += rowData.join(";") + "\n";
             });
 
-            // Blob erstellen und Download auslösen
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
             link.setAttribute('download', 'Ferienprogramm_Anmeldungen.csv');
-            link.style.visibility = 'hidden'; // Link verstecken
+            link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link); // Link entfernen
+            document.body.removeChild(link);
             showMessage("Daten erfolgreich als CSV-Datei heruntergeladen! Sie können diese Datei mit Excel öffnen.", true, messageBox);
         });
 
@@ -624,43 +654,42 @@
          */
         submitTokenButton.addEventListener('click', async function() {
             const enteredToken = tokenInput.value.trim();
-            tokenError.classList.add('hidden'); // Vorherige Token-Fehlermeldung löschen
-            messageBox.classList.add('hidden'); // Allgemeine Nachrichtenbox leeren
+            tokenError.classList.add('hidden');
+            messageBox.classList.add('hidden');
 
             if (enteredToken === currentAdminToken) {
                 showSection(adminLoginSection);
                 usernameInput.focus();
-                tokenInput.value = ''; // Token-Eingabe leeren
+                tokenInput.value = '';
             } else if (enteredToken === currentRegistrationToken) {
                 if (!db || !auth.currentUser) {
                     showMessage("Fehler: Datenbank nicht verfügbar. Bitte versuchen Sie es später erneut.", false, tokenError);
-                    tokenInput.value = ''; // Token-Eingabe leeren
+                    tokenInput.value = '';
                     return;
                 }
                 try {
-                    // Direkter Zugriff auf die "registrations"-Sammlung
                     const registrationsCollectionRef = collection(db, `registrations`);
                     const registrationsSnapshot = await getDocs(registrationsCollectionRef);
                     const currentRegistrationsCount = registrationsSnapshot.size;
 
                     if (availableSpots > 0 && currentRegistrationsCount >= availableSpots) {
-                        showSection(tokenSection); // Bleiben Sie auf dem Token-Bereich
+                        showSection(tokenSection);
                         showMessage("Leider sind für heute alle unsere freien Betreuungsplätze bereits belegt.", false, tokenError);
-                        tokenInput.value = ''; // Token-Eingabe leeren
+                        tokenInput.value = '';
                         return;
                     }
 
                     showSection(registrationSection);
                     showMessage('Token akzeptiert! Bitte füllen Sie das Anmeldeformular aus.', true);
-                    tokenInput.value = ''; // Token-Eingabe leeren
+                    tokenInput.value = '';
                 } catch (error) {
                     console.error("Fehler bei der Platzprüfung:", error);
                     showMessage("Ein Fehler ist bei der Platzprüfung aufgetreten. Bitte versuchen Sie es erneut.", false, tokenError);
-                    tokenInput.value = ''; // Token-Eingabe leeren
+                    tokenInput.value = '';
                 }
             } else {
                 showMessage('Falscher Token. Bitte versuchen Sie es erneut.', false, tokenError);
-                tokenInput.value = ''; // Token-Eingabe leeren
+                tokenInput.value = '';
             }
         });
 
@@ -668,7 +697,7 @@
          * Fügt dynamisch ein neues Set von Feldern für ein weiteres Kind hinzu.
          */
         addChildButton.addEventListener('click', function() {
-            childCount++; // Kinderzähler erhöhen
+            childCount++;
             const newChildEntry = document.createElement('div');
             newChildEntry.classList.add('child-entry', 'bg-gray-50', 'p-5', 'rounded-lg', 'shadow-inner', 'border', 'border-gray-200', 'mt-6');
             newChildEntry.id = `child-${childCount}`;
@@ -729,7 +758,6 @@
             }
 
             try {
-                // Direkter Zugriff auf die "registrations"-Sammlung
                 const registrationsCollectionRef = collection(db, `registrations`);
                 const registrationsSnapshot = await getDocs(registrationsCollectionRef);
                 const currentRegistrationsCount = registrationsSnapshot.size;
@@ -752,7 +780,6 @@
                 });
 
 
-                // Daten in Firestore speichern
                 await addDoc(registrationsCollectionRef, {
                     registeredBy: userId,
                     timestamp: new Date(),
@@ -853,7 +880,6 @@
             }
 
             await saveProgramSettings({ registrationToken: newRegToken, adminToken: newAdmToken }, tokenSettingsMessage);
-            // Tokens werden automatisch durch loadProgramSettings() aktualisiert
         });
 
         /**
@@ -868,19 +894,60 @@
             }
 
             await saveProgramSettings({ availableSpots: spots }, spotsSettingsMessage);
-            // availableSpots wird automatisch durch loadProgramSettings() aktualisiert
         });
 
+        /**
+         * Funktion zum Löschen aller Registrierungen.
+         */
+        async function deleteAllRegistrations() {
+            if (!db || !auth.currentUser) {
+                showMessage("Fehler: Datenbank oder Authentifizierung nicht bereit.", false, messageBox);
+                return;
+            }
+
+            // Zeige Bestätigungsmodal
+            confirmationModal.style.display = 'flex'; // 'flex' statt 'block' für Zentrierung
+
+            confirmDeleteButton.onclick = async () => {
+                confirmationModal.style.display = 'none'; // Modal schließen
+                showMessage("Lösche Anmeldungen...", null, messageBox); // Neutrale Meldung
+
+                try {
+                    const registrationsCollectionRef = collection(db, `registrations`);
+                    const snapshot = await getDocs(registrationsCollectionRef);
+                    const batch = writeBatch(db); // Starte einen Batch-Vorgang
+
+                    snapshot.docs.forEach((doc) => {
+                        batch.delete(doc.ref); // Füge jedes Dokument zum Batch hinzu
+                    });
+
+                    await batch.commit(); // Führe den Batch-Vorgang aus
+                    showMessage("Alle Anmeldungen erfolgreich gelöscht!", true, messageBox);
+                    loadRegistrations(); // Liste aktualisieren
+                } catch (error) {
+                    console.error("Fehler beim Löschen aller Anmeldungen:", error);
+                    showMessage("Fehler beim Löschen der Anmeldungen. Überprüfen Sie Ihre Firebase-Regeln.", false, messageBox);
+                }
+            };
+
+            cancelDeleteButton.onclick = () => {
+                confirmationModal.style.display = 'none'; // Modal schließen
+                showMessage("Löschvorgang abgebrochen.", null, messageBox); // Neutrale Meldung
+            };
+        }
+
+        // Event Listener für den neuen Löschen-Button
+        deleteAllRegistrationsButton.addEventListener('click', deleteAllRegistrations);
 
         /**
          * Behandelt den Logout-Button im Admin-Dashboard.
          */
         adminLogoutButton.addEventListener('click', function() {
             if (unsubscribeFromRegistrations) {
-                unsubscribeFromRegistrations(); // Firestore Listener abmelden
+                unsubscribeFromRegistrations();
                 unsubscribeFromRegistrations = null;
             }
-            showSection(tokenSection); // Zurück zum Token-Bereich
+            showSection(tokenSection);
             showMessage('Erfolgreich abgemeldet.', true);
         });
     </script>
