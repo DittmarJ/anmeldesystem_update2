@@ -245,13 +245,31 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, getDoc, setDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Konfiguration (wird vom Canvas-Host injiziert)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // Firebase Konfiguration
+        // Dies ist die Konfiguration für dein eigenes Firebase-Projekt, die du von der Firebase Console erhältst.
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBdMEtnL-QW6H7EWp5flHlhx6IaCGTj-E",
+            authDomain: "tagesanmeldungupdate.firebaseapp.com",
+            projectId: "tagesanmeldungupdate",
+            storageBucket: "tagesanmeldungupdate.firebasestorage.app",
+            messagingSenderId: "12808165781",
+            appId: "1:12808165781:web:4cb2148f378fcd46613e9c",
+            measurementId: "G-W3M99ZPQT8" // Optional: Nur einfügen, wenn du Google Analytics nutzt
+        };
+
+        // Debugging: Logge die geladene Firebase-Konfiguration
+        console.log("Geladene Firebase Konfiguration:", firebaseConfig);
+
+        // Die folgenden Variablen (`appId`, `firebaseConfigCanvas`, `initialAuthTokenCanvas`) sind spezifisch für die Canvas-Umgebung
+        // und werden verwendet, wenn die App hier im Workspace ausgeführt wird.
+        // Wenn die App auf GitHub gehostet wird, werden diese ignoriert und die oben definierte `firebaseConfig` verwendet.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id-canvas'; // Hier nur für Kompatibilität mit Canvas-Tests
+        const firebaseConfigCanvas = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}'); // Hier nur für Kompatibilität mit Canvas-Tests
+        const initialAuthTokenCanvas = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // Hier nur für Kompatibilität mit Canvas-Tests
+
 
         // Firebase Initialisierung
-        const app = initializeApp(firebaseConfig);
+        const app = initializeApp(firebaseConfig); // Initialisiert Firebase mit DEINER Konfiguration
         const db = getFirestore(app);
         const auth = getAuth(app);
         let userId = 'anon-user'; // Standardwert, wird nach Auth aktualisiert
@@ -385,17 +403,18 @@
 
         /**
          * Authentifiziert den Benutzer bei Firebase.
+         * Für GitHub-Bereitstellung melden wir uns anonym an.
          */
         async function authenticateFirebase() {
             try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // Für GitHub-Bereitstellung ist initialAuthTokenCanvas immer null/undefined.
+                // Wir melden uns hier immer anonym an, da dies der vorgesehene Anmeldetyp der App ist.
+                await signInAnonymously(auth);
+                // Optional: Wenn du später andere Authentifizierungsmethoden hinzufügen möchtest (z.B. Google Sign-in),
+                // würdest du hier entsprechende Logik hinzufügen.
             } catch (error) {
                 console.error("Firebase Authentifizierung fehlgeschlagen:", error);
-                showMessage("Fehler bei der Authentifizierung. Bitte versuchen Sie es später erneut.", false);
+                showMessage("Fehler bei der Authentifizierung. Bitte stellen Sie sicher, dass 'Anonyme Authentifizierung' in Ihrem Firebase-Projekt aktiviert ist und Ihre Firebase-Konfiguration korrekt ist.", false);
             }
         }
 
@@ -426,7 +445,9 @@
                 return;
             }
             try {
-                const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings/programSettings`);
+                // Bei GitHub-Bereitstellung greifen wir direkt auf die "settings"-Sammlung zu.
+                // Der Pfad `artifacts/${appId}/public/data/` ist spezifisch für die Canvas-Umgebung.
+                const settingsDocRef = doc(db, `settings/programSettings`);
                 const settingsDocSnap = await getDoc(settingsDocRef);
 
                 if (settingsDocSnap.exists()) {
@@ -461,7 +482,8 @@
                 return;
             }
             try {
-                const settingsDocRef = doc(db, `artifacts/${appId}/public/data/settings/programSettings`);
+                // Bei GitHub-Bereitstellung greifen wir direkt auf die "settings"-Sammlung zu.
+                const settingsDocRef = doc(db, `settings/programSettings`);
                 await updateDoc(settingsDocRef, updates);
                 await loadProgramSettings(); // Einstellungen neu laden, um Werte zu synchronisieren
                 showMessage("Einstellungen erfolgreich gespeichert!", true, messageTarget);
@@ -485,8 +507,9 @@
             registrationsList.innerHTML = ''; // Vorhandene Einträge löschen
             allRegistrationsData = []; // Daten für den Export zurücksetzen
 
-            // Erstelle einen Query, um die Daten aus der 'registrations' Sammlung zu holen
-            const q = query(collection(db, `artifacts/${appId}/public/data/registrations`));
+            // Erstelle einen Query, um die Daten aus der 'registrations' Sammlung zu holen.
+            // Bei GitHub-Bereitstellung greifen wir direkt auf die "registrations"-Sammlung zu.
+            const q = query(collection(db, `registrations`));
 
             // Abonniere Echtzeit-Updates
             // Stelle sicher, dass nur ein Listener aktiv ist
@@ -588,8 +611,7 @@
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            // Ändere die Dateiendung zu .xlsx, Excel kann oft CSVs damit öffnen
-            link.setAttribute('download', 'Ferienprogramm_Anmeldungen.csv'); // KORRIGIERT: Dateiendung zu .csv
+            link.setAttribute('download', 'Ferienprogramm_Anmeldungen.csv');
             link.style.visibility = 'hidden'; // Link verstecken
             document.body.appendChild(link);
             link.click();
@@ -616,7 +638,8 @@
                     return;
                 }
                 try {
-                    const registrationsCollectionRef = collection(db, `artifacts/${appId}/public/data/registrations`);
+                    // Direkter Zugriff auf die "registrations"-Sammlung
+                    const registrationsCollectionRef = collection(db, `registrations`);
                     const registrationsSnapshot = await getDocs(registrationsCollectionRef);
                     const currentRegistrationsCount = registrationsSnapshot.size;
 
@@ -706,7 +729,8 @@
             }
 
             try {
-                const registrationsCollectionRef = collection(db, `artifacts/${appId}/public/data/registrations`);
+                // Direkter Zugriff auf die "registrations"-Sammlung
+                const registrationsCollectionRef = collection(db, `registrations`);
                 const registrationsSnapshot = await getDocs(registrationsCollectionRef);
                 const currentRegistrationsCount = registrationsSnapshot.size;
 
