@@ -303,7 +303,7 @@
             projectId: "tagesanmeldungupdate",
             storageBucket: "tagesanmeldungupdate.firebasestorage.app",
             messagingSenderId: "12808165781",
-            appId: "1:12808165781:web:4cb2148f378fcd46613e9c",
+            appId: "1:12808165781:web:4cb2144f378fcd46613e9c",
             measurementId: "G-W3M99ZPQT8"
         };
 
@@ -320,6 +320,7 @@
         let currentRegistrationToken = "FERIEN2025"; // Standardwert
         let currentAdminToken = "Admin"; // Standardwert
         let availableSpots = 0; // Standardwert
+        let isViewOnlyUser = false; // Flag, um Lesezugriffsmodus zu verfolgen
 
         // DOM-Elemente abrufen
         const tokenSection = document.getElementById('token-section');
@@ -346,7 +347,7 @@
         const adminLogoutButton = document.getElementById('admin-logout-button');
         const displayUserId = document.getElementById('display-user-id');
         const downloadExcelButton = document.getElementById('download-excel-button');
-        const deleteAllRegistrationsButton = document.getElementById('delete-all-registrations-button'); // Neuer Button
+        const deleteAllRegistrationsButton = document.getElementById('delete-all-registrations-button');
 
         // Bestätigungsmodal Elemente
         const confirmationModal = document.getElementById('confirmation-modal');
@@ -380,9 +381,14 @@
         let unsubscribeFromRegistrations = null;
         let allRegistrationsData = [];
 
-        // Admin Zugangsdaten (nur für Demo, in Produktion sicher verwalten!)
-        const adminUsername = "admin";
-        const adminPassword = "password123";
+        // Admin Zugangsdaten für Lesezugriff (wie vom Benutzer angefordert)
+        const viewOnlyAdminUsername = "AnmeldungTutti";
+        const viewOnlyAdminPassword = "TuttiKiesi";
+
+        // Admin Zugangsdaten für vollen Zugriff (wie vom Benutzer rückgängig gemacht)
+        const fullAdminUsername = "Admin";
+        const fullAdminPassword = "password123";
+
 
         /**
          * Zeigt eine Meldung an und passt das Styling an.
@@ -424,6 +430,11 @@
                 console.log("Firestore registrations listener unsubscribed.");
             }
             sectionToShow.classList.remove('hidden');
+
+            // Berechtigungen neu anwenden, wenn sich die angezeigte Sektion ändert
+            if (sectionToShow === adminDashboardSection) {
+                applyAdminPermissions();
+            }
         }
 
         /**
@@ -448,6 +459,7 @@
                 availableSpotsInput.value = availableSpots;
                 spotsSettingsMessage.classList.add('hidden');
             }
+            applyAdminPermissions(); // Berechtigungen bei jedem Pane-Wechsel anwenden
         }
 
         /**
@@ -503,6 +515,7 @@
                     await setDoc(settingsDocRef, {
                         registrationToken: currentRegistrationToken,
                         adminToken: currentAdminToken,
+                        // Der View-Only Token wird hier nicht mehr in den Einstellungen gespeichert, da er hardcoded ist
                         availableSpots: availableSpots
                     });
                 }
@@ -525,7 +538,7 @@
             try {
                 const settingsDocRef = doc(db, `settings/programSettings`);
                 await updateDoc(settingsDocRef, updates);
-                await loadProgramSettings();
+                await loadProgramSettings(); // Einstellungen neu laden, um Werte zu synchronisieren
                 showMessage("Einstellungen erfolgreich gespeichert!", true, messageTarget);
             } catch (error) {
                 console.error("Fehler beim Speichern der Einstellungen:", error);
@@ -605,6 +618,7 @@
                         registrationsList.appendChild(fallbackDiv);
                     }
                 });
+                applyAdminPermissions(); // Berechtigungen anwenden, falls die Liste geladen wird, während ein Admin angemeldet ist
             }, (error) => {
                 console.error("Fehler beim Laden der Anmeldungen:", error);
                 loadingRegistrations.textContent = "Fehler beim Laden der Daten.";
@@ -616,6 +630,10 @@
          * Exportiert die gesammelten Registrierungsdaten als CSV-Datei.
          */
         downloadExcelButton.addEventListener('click', function() {
+            if (isViewOnlyUser) {
+                showMessage("Sie haben keine Berechtigung, Daten zu exportieren.", false, messageBox);
+                return;
+            }
             if (allRegistrationsData.length === 0) {
                 showMessage("Keine Daten zum Exportieren vorhanden.", false, messageBox);
                 return;
@@ -656,12 +674,14 @@
             const enteredToken = tokenInput.value.trim();
             tokenError.classList.add('hidden');
             messageBox.classList.add('hidden');
+            isViewOnlyUser = false; // Setze den Lesezugriffs-Flag zurück bei jedem Token-Eingabeversuch
 
-            if (enteredToken === currentAdminToken) {
+            if (enteredToken === currentAdminToken) { // Token "Admin" führt zur Anmeldeseite
                 showSection(adminLoginSection);
                 usernameInput.focus();
                 tokenInput.value = '';
-            } else if (enteredToken === currentRegistrationToken) {
+            }
+            else if (enteredToken === currentRegistrationToken) { // Token "FERIEN2025" führt zum Anmeldeformular
                 if (!db || !auth.currentUser) {
                     showMessage("Fehler: Datenbank nicht verfügbar. Bitte versuchen Sie es später erneut.", false, tokenError);
                     tokenInput.value = '';
@@ -691,6 +711,7 @@
                 showMessage('Falscher Token. Bitte versuchen Sie es erneut.', false, tokenError);
                 tokenInput.value = '';
             }
+            applyAdminPermissions(); // Berechtigungen nach Token-Eingabe anwenden
         });
 
         /**
@@ -848,15 +869,29 @@
             const enteredUsername = usernameInput.value;
             const enteredPassword = passwordInput.value;
 
-            if (enteredUsername === adminUsername && enteredPassword === adminPassword) {
-                showMessage("Admin-Login erfolgreich! Lade Daten...", true);
-                loginError.classList.add('hidden');
+            loginError.classList.add('hidden'); // Vorherige Fehlermeldung ausblenden
+            isViewOnlyUser = false; // Standardmäßig auf vollen Admin setzen, wird bei Lesezugriffs-Login auf true gesetzt
+
+            // Überprüfen der Zugangsdaten für vollen Admin-Zugriff
+            if (enteredUsername === fullAdminUsername && enteredPassword === fullAdminPassword) {
+                showMessage("Voller Admin-Login erfolgreich! Lade Daten...", true);
                 showSection(adminDashboardSection); // Admin-Dashboard anzeigen
                 showAdminPane('admin-content-teilnehmerliste'); // Standardmäßig Teilnehmerliste anzeigen
-            } else {
+                // isViewOnlyUser bleibt false für vollen Admin
+            }
+            // Überprüfen der Zugangsdaten für reinen Lesezugriff
+            else if (enteredUsername === viewOnlyAdminUsername && enteredPassword === viewOnlyAdminPassword) {
+                showMessage("Lesezugriff Admin-Login erfolgreich! Lade Daten...", true);
+                isViewOnlyUser = true; // Setze auf true für reinen Lesezugriff
+                showSection(adminDashboardSection); // Admin-Dashboard anzeigen
+                showAdminPane('admin-content-teilnehmerliste'); // Standardmäßig Teilnehmerliste anzeigen
+            }
+            // Falls keine der Zugangsdaten übereinstimmt
+            else {
                 loginError.classList.remove('hidden');
                 showMessage("Falscher Benutzername oder falsches Passwort.", false);
             }
+            applyAdminPermissions(); // Berechtigungen basierend auf dem isViewOnlyUser-Flag anwenden
         });
 
         // Event Listener für Admin-Dashboard Navigation
@@ -871,21 +906,35 @@
          * Behandelt das Speichern der Tokens im Admin-Dashboard.
          */
         saveTokensButton.addEventListener('click', async function() {
+            if (isViewOnlyUser) {
+                showMessage("Sie haben keine Berechtigung, Tokens zu speichern.", false, tokenSettingsMessage);
+                return;
+            }
             const newRegToken = newRegistrationTokenInput.value.trim();
             const newAdmToken = newAdminTokenInput.value.trim();
+            // Der View-Only Token wird hier nicht direkt geändert, da er hardcoded ist und dieser Login nur für ihn nicht gedacht ist
+            const newViewOnlyToken = viewOnlyAdminUsername; // Der View-Only Username ist hier unser "Token"
 
             if (!newRegToken || !newAdmToken) {
                 showMessage("Bitte geben Sie beide Tokens ein.", false, tokenSettingsMessage);
                 return;
             }
 
-            await saveProgramSettings({ registrationToken: newRegToken, adminToken: newAdmToken }, tokenSettingsMessage);
+            await saveProgramSettings({
+                registrationToken: newRegToken,
+                adminToken: newAdmToken,
+                viewOnlyToken: newViewOnlyToken // Speichere den View-Only "Token" (Username)
+            }, tokenSettingsMessage);
         });
 
         /**
          * Behandelt das Speichern der Platzanzahl im Admin-Dashboard.
          */
         saveSpotsButton.addEventListener('click', async function() {
+            if (isViewOnlyUser) {
+                showMessage("Sie haben keine Berechtigung, die Platzanzahl zu speichern.", false, spotsSettingsMessage);
+                return;
+            }
             const spots = parseInt(availableSpotsInput.value, 10);
 
             if (isNaN(spots) || spots < 0) {
@@ -900,28 +949,32 @@
          * Funktion zum Löschen aller Registrierungen.
          */
         async function deleteAllRegistrations() {
+            if (isViewOnlyUser) {
+                showMessage("Sie haben keine Berechtigung, Anmeldungen zu löschen.", false, messageBox);
+                return;
+            }
             if (!db || !auth.currentUser) {
                 showMessage("Fehler: Datenbank oder Authentifizierung nicht bereit.", false, messageBox);
                 return;
             }
 
             // Zeige Bestätigungsmodal
-            confirmationModal.style.display = 'flex'; // 'flex' statt 'block' für Zentrierung
+            confirmationModal.style.display = 'flex';
 
             confirmDeleteButton.onclick = async () => {
-                confirmationModal.style.display = 'none'; // Modal schließen
-                showMessage("Lösche Anmeldungen...", null, messageBox); // Neutrale Meldung
+                confirmationModal.style.display = 'none';
+                showMessage("Lösche Anmeldungen...", null, messageBox);
 
                 try {
                     const registrationsCollectionRef = collection(db, `registrations`);
                     const snapshot = await getDocs(registrationsCollectionRef);
-                    const batch = writeBatch(db); // Starte einen Batch-Vorgang
+                    const batch = writeBatch(db);
 
                     snapshot.docs.forEach((doc) => {
-                        batch.delete(doc.ref); // Füge jedes Dokument zum Batch hinzu
+                        batch.delete(doc.ref);
                     });
 
-                    await batch.commit(); // Führe den Batch-Vorgang aus
+                    await batch.commit();
                     showMessage("Alle Anmeldungen erfolgreich gelöscht!", true, messageBox);
                     loadRegistrations(); // Liste aktualisieren
                 } catch (error) {
@@ -931,8 +984,8 @@
             };
 
             cancelDeleteButton.onclick = () => {
-                confirmationModal.style.display = 'none'; // Modal schließen
-                showMessage("Löschvorgang abgebrochen.", null, messageBox); // Neutrale Meldung
+                confirmationModal.style.display = 'none';
+                showMessage("Löschvorgang abgebrochen.", null, messageBox);
             };
         }
 
@@ -943,13 +996,60 @@
          * Behandelt den Logout-Button im Admin-Dashboard.
          */
         adminLogoutButton.addEventListener('click', function() {
+            isViewOnlyUser = false; // Lesezugriffs-Flag zurücksetzen beim Logout
             if (unsubscribeFromRegistrations) {
                 unsubscribeFromRegistrations();
                 unsubscribeFromRegistrations = null;
             }
             showSection(tokenSection);
             showMessage('Erfolgreich abgemeldet.', true);
+            applyAdminPermissions(); // Berechtigungen beim Logout anwenden, um UI zu resetten
         });
+
+        /**
+         * Wendet Admin-Berechtigungen auf UI-Elemente an (deaktiviert/aktiviert).
+         * Deaktiviert Elemente für reine Lesezugriffe.
+         */
+        function applyAdminPermissions() {
+            // Elemente, die im Lesezugriffsmodus deaktiviert werden sollen
+            const elementsToDisable = [
+                downloadExcelButton,
+                deleteAllRegistrationsButton,
+                newRegistrationTokenInput,
+                newAdminTokenInput,
+                saveTokensButton,
+                availableSpotsInput,
+                saveSpotsButton
+            ];
+
+            elementsToDisable.forEach(el => {
+                if (el) { // Stelle sicher, dass das Element existiert
+                    el.disabled = isViewOnlyUser; // Deaktiviere, wenn isViewOnlyUser true ist
+                    if (isViewOnlyUser) {
+                        el.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        el.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                }
+            });
+
+            // Spezifische Handhabung für die Navigations-Items, die zu Änderungs-Panes führen könnten
+            const navItemsToDisable = [
+                navTokenAendern,
+                navPlatzanzahl,
+                navAdminsHinzufuegen
+            ];
+
+            navItemsToDisable.forEach(navItem => {
+                if (navItem) {
+                    if (isViewOnlyUser) {
+                        navItem.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none'); // pointer-events-none verhindert Klicks
+                    } else {
+                        navItem.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
