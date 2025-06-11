@@ -49,6 +49,51 @@
             justify-content: space-around;
             margin-top: 20px;
         }
+
+        /* Custom Toggle Switch Styling */
+        .toggle-checkbox {
+            /* Das tatsächliche Checkbox-Input komplett verstecken */
+            opacity: 0;
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+
+        .toggle-label {
+            /* Die visuelle Darstellung des Schiebereglers */
+            display: block;
+            width: 40px; /* Breite des Schalters */
+            height: 24px; /* Höhe des Schalters */
+            border-radius: 9999px; /* rounded-full */
+            background-color: #d1d5db; /* bg-gray-300 */
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .toggle-label::before {
+            /* Der bewegliche Kreis (Thumb) */
+            content: '';
+            position: absolute;
+            top: 2px; /* Position des Kreises */
+            left: 2px;
+            width: 20px; /* Größe des Kreises */
+            height: 20px;
+            background-color: white;
+            border-radius: 50%; /* runder Kreis */
+            transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* leichter Schatten */
+        }
+
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #6366F1; /* Indigo-500, wenn aktiviert */
+        }
+
+        .toggle-checkbox:checked + .toggle-label::before {
+            transform: translateX(16px); /* Verschieben nach rechts, wenn aktiviert */
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
@@ -59,7 +104,7 @@
     </div>
 
     <div class="bg-white p-6 sm:p-8 lg:p-10 rounded-xl shadow-2xl w-full max-w-md md:max-w-lg lg:max-w-xl">
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-indigo-700 mb-6">Tagesanmeldung Ferienprogramm</h1>
+        <h1 id="program-title-display" class="text-3xl sm:text-4xl font-extrabold text-center text-indigo-700 mb-6">Ferienprogramm - Tagesanmeldung</h1>
 
         <!-- Token-Eingabebereich -->
         <div id="token-section" class="space-y-4">
@@ -129,6 +174,14 @@
                                 <option value="Ja">Ja</option>
                             </select>
                         </div>
+                        <!-- Mittagessen-Option -->
+                        <div class="mt-4 flex items-center justify-between">
+                            <label for="mittagessen-1" class="text-sm font-medium text-gray-700">Mittagessen bestellen:</label>
+                            <label class="relative inline-block w-10 h-6 cursor-pointer">
+                                <input type="checkbox" name="children[0][mittagessen]" id="mittagessen-1" class="toggle-checkbox" checked>
+                                <span class="toggle-label"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -146,6 +199,10 @@
                     >
                         Anmeldung absenden
                     </button>
+                </div>
+                <!-- Kostenanzeige -->
+                <div id="total-cost-display" class="p-4 bg-indigo-50 rounded-lg text-center text-lg font-semibold text-indigo-700 mt-4">
+                    Gesamtkosten: 0.00 €
                 </div>
             </form>
             <!-- Meldungsbox für Erfolgs- oder Fehlermeldungen -->
@@ -195,6 +252,7 @@
             <!-- Admin Navigationsleiste -->
             <nav class="flex flex-wrap justify-center sm:justify-start gap-2 bg-gray-100 p-2 rounded-lg shadow-sm mb-6">
                 <span id="nav-teilnehmerliste" class="admin-nav-item active">Teilnehmerliste</span>
+                <span id="nav-kosten-titel" class="admin-nav-item">Kosten & Titel</span> <!-- Neuer Reiter -->
                 <span id="nav-token-aendern" class="admin-nav-item">Token ändern</span>
                 <span id="nav-platzanzahl" class="admin-nav-item">Platzanzahl</span>
                 <span id="nav-admins-hinzufuegen" class="admin-nav-item">Weitere Admins hinzufügen</span>
@@ -219,6 +277,36 @@
                 >
                     Alle Anmeldungen löschen
                 </button>
+            </div>
+
+            <div id="admin-content-kosten-titel" class="admin-content-pane hidden"> <!-- Neuer Pane für Kosten & Titel -->
+                <h3 class="text-xl font-semibold text-gray-700 mb-3">Kosten & Programmtitel Einstellungen</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="new-program-title" class="block text-sm font-medium text-gray-700">Programmtitel:</label>
+                        <input type="text" id="new-program-title" placeholder="Titel des Programms"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="first-child-cost-input" class="block text-sm font-medium text-gray-700">Kosten 1. Kind (€):</label>
+                        <input type="number" id="first-child-cost-input" min="0" step="0.01"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="additional-child-cost-input" class="block text-sm font-medium text-gray-700">Kosten jedes weitere Kind (€):</label>
+                        <input type="number" id="additional-child-cost-input" min="0" step="0.01"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="lunch-cost-input" class="block text-sm font-medium text-gray-700">Kosten Mittagessen pro Kind (€):</label>
+                        <input type="number" id="lunch-cost-input" min="0" step="0.01"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <button id="save-costs-title-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                        Kosten & Titel speichern
+                    </button>
+                    <p id="costs-title-settings-message" class="text-center text-sm mt-2"></p>
+                </div>
             </div>
 
             <div id="admin-content-token-aendern" class="admin-content-pane hidden">
@@ -320,9 +408,15 @@
         let currentRegistrationToken = "FERIEN2025"; // Standardwert
         let currentAdminToken = "Admin"; // Standardwert
         let availableSpots = 0; // Standardwert
+        let programTitle = "Ferienprogramm - Tagesanmeldung"; // Standardwert für Programmtitel
+        let firstChildCost = 10.00; // Standardkosten
+        let additionalChildCost = 9.00; // Standardkosten
+        let lunchCost = 6.00; // Standardkosten
         let isViewOnlyUser = false; // Flag, um Lesezugriffsmodus zu verfolgen
 
         // DOM-Elemente abrufen
+        const programTitleDisplay = document.getElementById('program-title-display'); // Neuer DOM-Element
+        const totalCostDisplay = document.getElementById('total-cost-display'); // Kostenanzeige
         const tokenSection = document.getElementById('token-section');
         const registrationSection = document.getElementById('registration-section');
         const adminLoginSection = document.getElementById('admin-login-section');
@@ -359,14 +453,23 @@
         const adminContentPanes = document.querySelectorAll('.admin-content-pane');
 
         const navTeilnehmerliste = document.getElementById('nav-teilnehmerliste');
+        const navKostenTitel = document.getElementById('nav-kosten-titel'); // Neuer Navigations-Button
         const navTokenAendern = document.getElementById('nav-token-aendern');
         const navPlatzanzahl = document.getElementById('nav-platzanzahl');
         const navAdminsHinzufuegen = document.getElementById('nav-admins-hinzufuegen');
 
         const adminContentTeilnehmerliste = document.getElementById('admin-content-teilnehmerliste');
+        const adminContentKostenTitel = document.getElementById('admin-content-kosten-titel'); // Neuer Pane
         const adminContentTokenAendern = document.getElementById('admin-content-token-aendern');
         const adminContentPlatzanzahl = document.getElementById('admin-content-platzanzahl');
         const adminContentAdminsHinzufuegen = document.getElementById('admin-content-admins-hinzufuegen');
+
+        const newProgramTitleInput = document.getElementById('new-program-title');
+        const firstChildCostInput = document.getElementById('first-child-cost-input'); // Neuer Input
+        const additionalChildCostInput = document.getElementById('additional-child-cost-input'); // Neuer Input
+        const lunchCostInput = document.getElementById('lunch-cost-input'); // Neuer Input
+        const saveCostsTitleButton = document.getElementById('save-costs-title-button'); // Neuer Speichern-Button
+        const costsTitleSettingsMessage = document.getElementById('costs-title-settings-message'); // Neue Meldung
 
         const newRegistrationTokenInput = document.getElementById('new-registration-token');
         const newAdminTokenInput = document.getElementById('new-admin-token');
@@ -381,11 +484,11 @@
         let unsubscribeFromRegistrations = null;
         let allRegistrationsData = [];
 
-        // Admin Zugangsdaten für Lesezugriff (wie vom Benutzer angefordert)
+        // Admin Zugangsdaten für Lesezugriff
         const viewOnlyAdminUsername = "AnmeldungTutti";
         const viewOnlyAdminPassword = "TuttiKiesi";
 
-        // Admin Zugangsdaten für vollen Zugriff (wie vom Benutzer rückgängig gemacht)
+        // Admin Zugangsdaten für vollen Zugriff
         const fullAdminUsername = "Admin";
         const fullAdminPassword = "password123";
 
@@ -451,6 +554,12 @@
             // Spezifische Aktionen beim Wechseln des Panes
             if (paneId === 'admin-content-teilnehmerliste') {
                 loadRegistrations(); // Listener erneut abonnieren, falls abgemeldet
+            } else if (paneId === 'admin-content-kosten-titel') { // Neuer Pane
+                newProgramTitleInput.value = programTitle;
+                firstChildCostInput.value = firstChildCost;
+                additionalChildCostInput.value = additionalChildCost;
+                lunchCostInput.value = lunchCost;
+                costsTitleSettingsMessage.classList.add('hidden');
             } else if (paneId === 'admin-content-token-aendern') {
                 newRegistrationTokenInput.value = currentRegistrationToken;
                 newAdminTokenInput.value = currentAdminToken;
@@ -493,7 +602,7 @@
         authenticateFirebase();
 
         /**
-         * Lädt globale Programmeinstellungen (Tokens, Platzanzahl) aus Firestore.
+         * Lädt globale Programmeinstellungen (Tokens, Platzanzahl, Programmtitel, Kosten) aus Firestore.
          */
         async function loadProgramSettings() {
             if (!db) {
@@ -509,16 +618,25 @@
                     currentRegistrationToken = settingsData.registrationToken || "FERIEN2025";
                     currentAdminToken = settingsData.adminToken || "Admin";
                     availableSpots = settingsData.availableSpots !== undefined ? settingsData.availableSpots : 0;
+                    programTitle = settingsData.programTitle || "Ferienprogramm - Tagesanmeldung"; // Programmtitel laden
+                    firstChildCost = settingsData.firstChildCost !== undefined ? settingsData.firstChildCost : 10.00;
+                    additionalChildCost = settingsData.additionalChildCost !== undefined ? settingsData.additionalChildCost : 9.00;
+                    lunchCost = settingsData.lunchCost !== undefined ? settingsData.lunchCost : 6.00;
                     console.log("Programmeinstellungen geladen:", settingsData);
                 } else {
                     console.log("Programmeinstellungen-Dokument existiert nicht. Erstelle mit Standardwerten.");
                     await setDoc(settingsDocRef, {
                         registrationToken: currentRegistrationToken,
                         adminToken: currentAdminToken,
-                        // Der View-Only Token wird hier nicht mehr in den Einstellungen gespeichert, da er hardcoded ist
-                        availableSpots: availableSpots
+                        availableSpots: availableSpots,
+                        programTitle: programTitle, // Programmtitel speichern
+                        firstChildCost: firstChildCost,
+                        additionalChildCost: additionalChildCost,
+                        lunchCost: lunchCost
                     });
                 }
+                programTitleDisplay.textContent = programTitle; // Programmtitel auf der Hauptseite anzeigen
+                calculateTotalCost(); // Kosten beim Laden der Einstellungen neu berechnen
             } catch (error) {
                 console.error("Fehler beim Laden der Programmeinstellungen:", error);
                 showMessage("Fehler beim Laden der Einstellungen. Standardwerte werden verwendet.", false);
@@ -580,16 +698,32 @@
                     const data = doc.data();
                     const registrationId = doc.id;
 
+                    let familyChildCounter = 0; // Zähler für die Kinder in dieser Anmeldung
+
                     if (Array.isArray(data.children) && data.children.length > 0) {
                         data.children.forEach((child, index) => {
+                            let currentChildCalculatedCost = 0;
+                            if (familyChildCounter === 0) {
+                                currentChildCalculatedCost = firstChildCost;
+                            } else {
+                                currentChildCalculatedCost = additionalChildCost;
+                            }
+                            if (child.mittagessen === 'Ja') {
+                                currentChildCalculatedCost += lunchCost;
+                            }
+
                             const childDiv = document.createElement('div');
                             childDiv.classList.add('bg-gray-50', 'p-4', 'rounded-lg', 'shadow-sm', 'border', 'border-gray-200', 'mb-2');
                             childDiv.innerHTML = `
-                                <h4 class="text-lg font-bold text-gray-800 mb-2">Kind ${index + 1}: ${child.vorname} ${child.name}</h4>
+                                <h4 class="text-lg font-bold text-gray-800 mb-2">
+                                    Kind ${index + 1}: ${child.vorname} ${child.name}
+                                    <span class="text-blue-600 ml-2">(${currentChildCalculatedCost.toFixed(2)} €)</span>
+                                </h4>
                                 <p class="text-sm text-gray-600"><strong>Straße:</strong> ${child.strasse}</p>
                                 <p class="text-sm text-gray-600"><strong>Ort:</strong> ${child.ort}</p>
                                 <p class="text-sm text-gray-600"><strong>Telefon:</strong> ${child.telefon}</p>
                                 <p class="text-sm text-gray-600"><strong>Alleine nach Hause:</strong> ${child.alleineNachHause}</p>
+                                <p class="text-sm text-gray-600"><strong>Mittagessen:</strong> ${child.mittagessen || 'Nein'}</p>
                                 <p class="text-xs text-gray-400 mt-2">Anmeldung ID: ${registrationId}</p>
                                 <p class="text-xs text-gray-400">Registriert von: ${data.registeredBy || 'Unbekannt'}</p>
                                 <p class="text-xs text-gray-400">Zeitpunkt: ${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'N/A'}</p>
@@ -603,8 +737,10 @@
                                 ort: child.ort,
                                 telefon: child.telefon,
                                 alleineNachHause: child.alleineNachHause,
-                                bezahlt: "Ja"
+                                mittagessen: child.mittagessen || 'Nein', // Füge Mittagessen hinzu
+                                bezahlt: "Ja" // Standardwert, falls nicht im Firestore
                             });
+                            familyChildCounter++;
                         });
                     } else {
                         const fallbackDiv = document.createElement('div');
@@ -639,7 +775,7 @@
                 return;
             }
 
-            const headers = ["Name", "Vorname", "Straße", "Ort", "Tel.", "Darf alleine nach Hause?", "Bezahlt?"];
+            const headers = ["Name", "Vorname", "Straße", "Ort", "Tel.", "Darf alleine nach Hause?", "Mittagessen?", "Bezahlt?"]; // Header aktualisiert
             let csvContent = headers.map(header => `"${header}"`).join(";") + "\n";
 
             allRegistrationsData.forEach(row => {
@@ -650,6 +786,7 @@
                     `"${row.ort}"`,
                     `"${row.telefon}"`,
                     `"${row.alleineNachHause}"`,
+                    `"${row.mittagessen}"`, // Füge Mittagessen hinzu
                     `"${row.bezahlt}"`
                 ];
                 csvContent += rowData.join(";") + "\n";
@@ -702,6 +839,7 @@
                     showSection(registrationSection);
                     showMessage('Token akzeptiert! Bitte füllen Sie das Anmeldeformular aus.', true);
                     tokenInput.value = '';
+                    calculateTotalCost(); // Kosten initial berechnen
                 } catch (error) {
                     console.error("Fehler bei der Platzprüfung:", error);
                     showMessage("Ein Fehler ist bei der Platzprüfung aufgetreten. Bitte versuchen Sie es erneut.", false, tokenError);
@@ -761,9 +899,49 @@
                         <option value="Ja">Ja</option>
                     </select>
                 </div>
+                <!-- Mittagessen-Option -->
+                <div class="mt-4 flex items-center justify-between">
+                    <label for="mittagessen-${childCount}" class="text-sm font-medium text-gray-700">Mittagessen bestellen:</label>
+                    <label class="relative inline-block w-10 h-6 cursor-pointer">
+                        <input type="checkbox" name="children[${childCount-1}][mittagessen]" id="mittagessen-${childCount}" class="toggle-checkbox" checked>
+                        <span class="toggle-label"></span>
+                    </label>
+                </div>
             `;
             childrenContainer.appendChild(newChildEntry);
+            // Event Listener für den neuen Mittagessen-Toggle
+            document.getElementById(`mittagessen-${childCount}`).addEventListener('change', calculateTotalCost);
+            calculateTotalCost(); // Kosten neu berechnen, wenn ein Kind hinzugefügt wird
         });
+
+        /**
+         * Berechnet die Gesamtkosten basierend auf der Anzahl der Kinder und Mittagessenoptionen.
+         */
+        function calculateTotalCost() {
+            let totalCost = 0;
+            const childEntries = document.querySelectorAll('.child-entry');
+            const numberOfChildren = childEntries.length;
+
+            if (numberOfChildren > 0) {
+                totalCost += firstChildCost; // Kosten für das erste Kind
+
+                if (numberOfChildren > 1) {
+                    totalCost += (numberOfChildren - 1) * additionalChildCost; // Kosten für jedes weitere Kind
+                }
+
+                childEntries.forEach((childEntry) => {
+                    const lunchCheckbox = childEntry.querySelector('.toggle-checkbox');
+                    if (lunchCheckbox && lunchCheckbox.checked) {
+                        totalCost += lunchCost; // Kosten für Mittagessen
+                    }
+                });
+            }
+            totalCostDisplay.textContent = `Gesamtkosten: ${totalCost.toFixed(2)} €`;
+        }
+
+        // Event Listener für Änderungen an den Mittagessen-Toggles (initial für Kind 1)
+        document.getElementById('mittagessen-1').addEventListener('change', calculateTotalCost);
+
 
         /**
          * Behandelt das Absenden des Anmeldeformulars.
@@ -797,6 +975,8 @@
                     childData.ort = childEntry.querySelector(`#ort-${index + 1}`).value;
                     childData.telefon = childEntry.querySelector(`#tel-${index + 1}`).value;
                     childData.alleineNachHause = childEntry.querySelector(`#alleine-${index + 1}`).value;
+                    // Holt den Wert des Mittagessen-Sliders
+                    childData.mittagessen = childEntry.querySelector(`#mittagessen-${index + 1}`).checked ? 'Ja' : 'Nein';
                     allChildrenData.push(childData);
                 });
 
@@ -850,9 +1030,19 @@
                                 </select>
                             </div>
                         </div>
+                        <!-- Mittagessen-Option -->
+                        <div class="mt-4 flex items-center justify-between">
+                            <label for="mittagessen-1" class="text-sm font-medium text-gray-700">Mittagessen bestellen:</label>
+                            <label class="relative inline-block w-10 h-6 cursor-pointer">
+                                <input type="checkbox" name="children[0][mittagessen]" id="mittagessen-1" class="toggle-checkbox" checked>
+                                <span class="toggle-label"></span>
+                            </label>
+                        </div>
                     </div>
                 `;
                 childCount = 1;
+                document.getElementById('mittagessen-1').addEventListener('change', calculateTotalCost); // Listener neu zuweisen
+                calculateTotalCost(); // Kosten zurücksetzen/neu berechnen
                 setTimeout(() => showSection(tokenSection), 2000);
             } catch (e) {
                 console.error("Fehler beim Speichern der Anmeldedaten:", e);
@@ -912,8 +1102,6 @@
             }
             const newRegToken = newRegistrationTokenInput.value.trim();
             const newAdmToken = newAdminTokenInput.value.trim();
-            // Der View-Only Token wird hier nicht direkt geändert, da er hardcoded ist und dieser Login nur für ihn nicht gedacht ist
-            const newViewOnlyToken = viewOnlyAdminUsername; // Der View-Only Username ist hier unser "Token"
 
             if (!newRegToken || !newAdmToken) {
                 showMessage("Bitte geben Sie beide Tokens ein.", false, tokenSettingsMessage);
@@ -922,10 +1110,37 @@
 
             await saveProgramSettings({
                 registrationToken: newRegToken,
-                adminToken: newAdmToken,
-                viewOnlyToken: newViewOnlyToken // Speichere den View-Only "Token" (Username)
+                adminToken: newAdmToken
             }, tokenSettingsMessage);
         });
+
+        /**
+         * Behandelt das Speichern der Kosten und des Programmtitels im Admin-Dashboard.
+         */
+        saveCostsTitleButton.addEventListener('click', async function() {
+            if (isViewOnlyUser) {
+                showMessage("Sie haben keine Berechtigung, Kosten oder den Titel zu speichern.", false, costsTitleSettingsMessage);
+                return;
+            }
+            const newProgTitle = newProgramTitleInput.value.trim();
+            const newFirstChildCost = parseFloat(firstChildCostInput.value);
+            const newAdditionalChildCost = parseFloat(additionalChildCostInput.value);
+            const newLunchCost = parseFloat(lunchCostInput.value);
+
+            if (!newProgTitle || isNaN(newFirstChildCost) || isNaN(newAdditionalChildCost) || isNaN(newLunchCost) ||
+                newFirstChildCost < 0 || newAdditionalChildCost < 0 || newLunchCost < 0) {
+                showMessage("Bitte füllen Sie alle Felder korrekt aus (Zahlen > 0 für Kosten).", false, costsTitleSettingsMessage);
+                return;
+            }
+
+            await saveProgramSettings({
+                programTitle: newProgTitle,
+                firstChildCost: newFirstChildCost,
+                additionalChildCost: newAdditionalChildCost,
+                lunchCost: newLunchCost
+            }, costsTitleSettingsMessage);
+        });
+
 
         /**
          * Behandelt das Speichern der Platzanzahl im Admin-Dashboard.
@@ -1015,6 +1230,11 @@
             const elementsToDisable = [
                 downloadExcelButton,
                 deleteAllRegistrationsButton,
+                newProgramTitleInput,
+                firstChildCostInput,
+                additionalChildCostInput,
+                lunchCostInput,
+                saveCostsTitleButton,
                 newRegistrationTokenInput,
                 newAdminTokenInput,
                 saveTokensButton,
@@ -1035,6 +1255,7 @@
 
             // Spezifische Handhabung für die Navigations-Items, die zu Änderungs-Panes führen könnten
             const navItemsToDisable = [
+                navKostenTitel, // Jetzt auch den neuen Kosten-Tab deaktivieren
                 navTokenAendern,
                 navPlatzanzahl,
                 navAdminsHinzufuegen
