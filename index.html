@@ -282,25 +282,25 @@
             <div id="admin-content-kosten-titel" class="admin-content-pane hidden"> <!-- Neuer Pane für Kosten & Titel -->
                 <h3 class="text-xl font-semibold text-gray-700 mb-3">Kosten & Programmtitel Einstellungen</h3>
                 <div class="space-y-4">
-                    <div>
-                        <label for="new-program-title" class="block text-sm font-medium text-gray-700">Programmtitel:</label>
+                    <div class="w-full">
+                        <label for="new-program-title" class="block text-sm font-medium text-gray-700 mb-1">Programmtitel:</label>
                         <input type="text" id="new-program-title" placeholder="Titel des Programms"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
-                    <div>
-                        <label for="first-child-cost-input" class="block text-sm font-medium text-gray-700">Kosten 1. Kind (€):</label>
+                    <div class="w-full">
+                        <label for="first-child-cost-input" class="block text-sm font-medium text-gray-700 mb-1">Kosten 1. Kind (€):</label>
                         <input type="number" id="first-child-cost-input" min="0" step="0.01"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
-                    <div>
-                        <label for="additional-child-cost-input" class="block text-sm font-medium text-gray-700">Kosten jedes weitere Kind (€):</label>
+                    <div class="w-full">
+                        <label for="additional-child-cost-input" class="block text-sm font-medium text-gray-700 mb-1">Kosten jedes weitere Kind (€):</label>
                         <input type="number" id="additional-child-cost-input" min="0" step="0.01"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
-                    <div>
-                        <label for="lunch-cost-input" class="block text-sm font-medium text-gray-700">Kosten Mittagessen pro Kind (€):</label>
+                    <div class="w-full">
+                        <label for="lunch-cost-input" class="block text-sm font-medium text-gray-700 mb-1">Kosten Mittagessen pro Kind (€):</label>
                         <input type="number" id="lunch-cost-input" min="0" step="0.01"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     <button id="save-costs-title-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                         Kosten & Titel speichern
@@ -312,15 +312,15 @@
             <div id="admin-content-token-aendern" class="admin-content-pane hidden">
                 <h3 class="text-xl font-semibold text-gray-700 mb-3">Tokens ändern</h3>
                 <div class="space-y-4">
-                    <div>
-                        <label for="new-registration-token" class="block text-sm font-medium text-gray-700">Neuer Registrierungs-Token:</label>
+                    <div class="w-full">
+                        <label for="new-registration-token" class="block text-sm font-medium text-gray-700 mb-1">Neuer Registrierungs-Token:</label>
                         <input type="text" id="new-registration-token" placeholder="Neuer Token für Anmeldungen"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
-                    <div>
-                        <label for="new-admin-token" class="block text-sm font-medium text-gray-700">Neuer Admin-Token:</label>
+                    <div class="w-full">
+                        <label for="new-admin-token" class="block text-sm font-medium text-gray-700 mb-1">Neuer Admin-Token:</label>
                         <input type="text" id="new-admin-token" placeholder="Neuer Token für Admin-Login"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     <button id="save-tokens-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                         Tokens speichern
@@ -332,10 +332,10 @@
             <div id="admin-content-platzanzahl" class="admin-content-pane hidden">
                 <h3 class="text-xl font-semibold text-gray-700 mb-3">Platzanzahl festlegen</h3>
                 <div class="space-y-4">
-                    <div>
-                        <label for="available-spots-input" class="block text-sm font-medium text-gray-700">Anzahl verfügbarer Plätze:</label>
+                    <div class="w-full">
+                        <label for="available-spots-input" class="block text-sm font-medium text-gray-700 mb-1">Anzahl verfügbarer Plätze:</label>
                         <input type="number" id="available-spots-input" min="0" value="0"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     <button id="save-spots-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                         Platzanzahl speichern
@@ -738,7 +738,8 @@
                                 telefon: child.telefon,
                                 alleineNachHause: child.alleineNachHause,
                                 mittagessen: child.mittagessen || 'Nein', // Füge Mittagessen hinzu
-                                bezahlt: "Ja" // Standardwert, falls nicht im Firestore
+                                bezahlt: "Ja", // Standardwert, falls nicht im Firestore
+                                anmeldeart: "Tagesanmeldung" // Neue Spalte
                             });
                             familyChildCounter++;
                         });
@@ -775,7 +776,8 @@
                 return;
             }
 
-            const headers = ["Name", "Vorname", "Straße", "Ort", "Tel.", "Darf alleine nach Hause?", "Mittagessen?", "Bezahlt?"]; // Header aktualisiert
+            // Aktualisierte Header für den CSV-Export
+            const headers = ["Name", "Vorname", "Straße", "Ort", "Tel.", "Darf alleine nach Hause?", "Mittagessen?", "Bezahlt?", "Anmeldeart"]; 
             let csvContent = headers.map(header => `"${header}"`).join(";") + "\n";
 
             allRegistrationsData.forEach(row => {
@@ -786,8 +788,9 @@
                     `"${row.ort}"`,
                     `"${row.telefon}"`,
                     `"${row.alleineNachHause}"`,
-                    `"${row.mittagessen}"`, // Füge Mittagessen hinzu
-                    `"${row.bezahlt}"`
+                    `"${row.mittagessen}"`, 
+                    `"${row.bezahlt}"`,
+                    `"${row.anmeldeart}"` // Füge neue Spalte hinzu
                 ];
                 csvContent += rowData.join(";") + "\n";
             });
@@ -1261,7 +1264,7 @@
                 navAdminsHinzufuegen
             ];
 
-            navItemsToable.forEach(navItem => {
+            navItemsToDisable.forEach(navItem => {
                 if (navItem) {
                     if (isViewOnlyUser) {
                         navItem.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none'); // pointer-events-none verhindert Klicks
