@@ -440,25 +440,38 @@
             </div>
         </div>
 
-        <!-- Pickup Confirmation Modal -->
-        <div id="pickup-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
-            <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-sm">
-                <h3 class="text-xl font-bold mb-4 text-gray-800">Teilnehmer abholen</h3>
-                <p class="mb-4">Bitte bestätige, wer <span id="pickup-participant-name" class="font-semibold"></span> abgeholt hat:</p>
-                
-                <div class="space-y-3 mb-6">
-                    <div>
-                        <label for="pickup-person-select" class="block text-sm font-medium text-gray-700 mb-1">Abholperson auswählen:</label>
-                        <select id="pickup-person-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Bitte auswählen</option>
-                            <option value="Mutter">Mutter</option>
-                            <option value="Vater">Vater</option>
-                            <option value="Oma">Oma</option>
-                            <option value="Opa">Opa</option>
-                            <option value="Geschwister">Geschwister</option>
-                            <option value="Sonstige">Sonstige (bitte angeben)</option>
-                        </select>
-                    </div>
+<!-- Pickup Confirmation Modal - Now positioned at top -->
+<div id="pickup-modal" class="hidden">
+    <div class="bg-white rounded-b-lg shadow-xl w-full max-w-md mx-auto p-6">
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Teilnehmer abholen</h3>
+        <p class="mb-4">Bitte bestätige, wer <span id="pickup-participant-name" class="font-semibold"></span> abgeholt hat:</p>
+        
+        <div class="space-y-3 mb-6">
+            <div>
+                <label for="pickup-person-select" class="block text-sm font-medium text-gray-700 mb-1">Abholperson auswählen:</label>
+                <select id="pickup-person-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Bitte auswählen</option>
+                    <option value="Mutter">Mutter</option>
+                    <option value="Vater">Vater</option>
+                    <option value="Oma">Oma</option>
+                    <option value="Opa">Opa</option>
+                    <option value="Geschwister">Geschwister</option>
+                    <option value="Sonstige">Sonstige (bitte angeben)</option>
+                </select>
+            </div>
+            <div id="custom-pickup-person-container" class="hidden">
+                <label for="custom-pickup-person-input" class="block text-sm font-medium text-gray-700 mb-1">Name der abholenden Person:</label>
+                <input type="text" id="custom-pickup-person-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Name der abholenden Person">
+            </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+            <button id="cancel-pickup" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg">Abbrechen</button>
+            <button id="confirm-pickup" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg">Bestätigen</button>
+        </div>
+        <div id="pickup-message-box" class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden text-center" role="alert"></div>
+    </div>
+</div>
                     <div id="custom-pickup-person-container" class="hidden">
                         <label for="custom-pickup-person-input" class="block text-sm font-medium text-gray-700 mb-1">Name der abholenden Person:</label>
                         <input type="text" id="custom-pickup-person-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Name der abholenden Person">
