@@ -334,7 +334,7 @@
                         <input type="file" id="import-participants-file-input" accept=".xlsx,.xls" class="w-full p-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button id="import-participants-button" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg w-full transition-all duration-200">Excel importieren</button>
                         <div id="import-participants-message" class="mt-2 text-sm text-center hidden"></div>
-                        <p class="text-xs text-gray-500 mt-2">Erwartetes Excel-Format (erste Zeile als Überschrift): Name,Vorname,Straße,Ort,Tel.,Darf alleine nach Hause?,Bezahlt?,**Anmeldeart** (optional: Tagesanmeldung/Wochenanmeldung). Beispiel: Mustermann,Max,Musterstr. 1,Musterstadt,0123456789,Nein,Ja,Tagesanmeldung</p>
+                        <p class="text-xs text-gray-500 mt-2">Erwartetes Excel-Format (erste Zeile als Überschrift): Name,Vorname,Straße,Ort,Tel.,Darf alleine nach Hause,Bezahlt,**Anmeldeart** (optional: Tagesanmeldung/Wochenanmeldung). Beispiel: Mustermann,Max,Musterstr. 1,Musterstadt,0123456789,Nein,Ja,Tagesanmeldung</p>
                     </div>
                 </div>
 
@@ -376,12 +376,79 @@
         <!-- Unified Participant List Container - Moved to be a direct child of app-container, hidden by default -->
         <!-- This container will be toggled visible/hidden based on active screen/admin tab -->
 		<div id="unified-participant-container" class="min-h-[200px] space-y-2 mt-6 hidden">
-					<input type="text" id="participant-search-input" placeholder="Teilnehmer suchen..." class="w-full p-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-					<p class="text-sm text-gray-600 mb-2">Angemeldete Teilnehmer: <span id="participant-count" class="font-semibold text-blue-600">0</span></p>
-					<ul id="unified-participant-list" class="space-y-2">
-						</ul>
-					<p id="no-participants-message-unified" class="text-center text-gray-500 text-sm mt-4 hidden">Noch keine Teilnehmer vorhanden.</p>
-				</div>
+            <!-- Search and Filter Section -->
+            <div class="space-y-2 mb-4">
+                <input type="text" id="participant-search-input" placeholder="Teilnehmer suchen..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="flex items-center space-x-2">
+                    <select id="first-name-filter" class="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Vorname (Alle)</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="G">G</option>
+                        <option value="H">H</option>
+                        <option value="I">I</option>
+                        <option value="J">J</option>
+                        <option value="K">K</option>
+                        <option value="L">L</option>
+                        <option value="M">M</option>
+                        <option value="N">N</option>
+                        <option value="O">O</option>
+                        <option value="P">P</option>
+                        <option value="Q">Q</option>
+                        <option value="R">R</option>
+                        <option value="S">S</option>
+                        <option value="T">T</option>
+                        <option value="U">U</option>
+                        <option value="V">V</option>
+                        <option value="W">W</option>
+                        <option value="X">X</option>
+                        <option value="Y">Y</option>
+                        <option value="Z">Z</option>
+                    </select>
+                    <select id="last-name-filter" class="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Nachname (Alle)</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="G">G</option>
+                        <option value="H">H</option>
+                        <option value="I">I</option>
+                        <option value="J">J</option>
+                        <option value="K">K</option>
+                        <option value="L">L</option>
+                        <option value="M">M</option>
+                        <option value="N">N</option>
+                        <option value="O">O</option>
+                        <option value="P">P</option>
+                        <option value="Q">Q</option>
+                        <option value="R">R</option>
+                        <option value="S">S</option>
+                        <option value="T">T</option>
+                        <option value="U">U</option>
+                        <option value="V">V</option>
+                        <option value="W">W</option>
+                        <option value="X">X</option>
+                        <option value="Y">Y</option>
+                        <option value="Z">Z</option>
+                    </select>
+                    <button id="reset-filters-button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-all duration-200">
+                        Zurücksetzen
+                    </button>
+                </div>
+            </div>
+            
+            <p class="text-sm text-gray-600 mb-2">Angemeldete Teilnehmer: <span id="participant-count" class="font-semibold text-blue-600">0</span></p>
+            <ul id="unified-participant-list" class="space-y-2">
+            </ul>
+            <p id="no-participants-message-unified" class="text-center text-gray-500 text-sm mt-4 hidden">Noch keine Teilnehmer vorhanden.</p>
+        </div>
 
         <!-- Delete Confirmation Modal (Reused for other confirmations) -->
         <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -542,7 +609,10 @@
             const noParticipantsMessageUnified = document.getElementById('no-participants-message-unified');
             const actionFeedbackMessage = document.getElementById('action-feedback-message');
             const participantActionsDiv = document.getElementById('participant-actions'); // This div is now always hidden
-            const participantSearchInput = document.getElementById('participant-search-input'); // NEW
+            const participantSearchInput = document.getElementById('participant-search-input');
+            const firstNameFilter = document.getElementById('first-name-filter');
+            const lastNameFilter = document.getElementById('last-name-filter');
+            const resetFiltersButton = document.getElementById('reset-filters-button');
 
             const deleteModal = document.getElementById('delete-modal');
             const deleteModalTitle = document.getElementById('delete-modal-title'); // NEW
@@ -1073,6 +1143,8 @@
                 unifiedParticipantList.innerHTML = '';
 
                 const searchTerm = participantSearchInput.value.toLowerCase();
+                const firstNameFilterValue = firstNameFilter.value;
+                const lastNameFilterValue = lastNameFilter.value;
 
                 // Sortierung nach Alphabet des Vornamens
                 const sortedParticipants = [...participants].sort((a, b) => {
@@ -1080,10 +1152,28 @@
                     const nameA = a.name.split(' ')[0] || a.name;
                     const nameB = b.name.split(' ')[0] || b.name;
                     return nameA.localeCompare(nameB);
-                }).filter(participant => participant.name.toLowerCase().includes(searchTerm));
+                }).filter(participant => {
+                    // Split name into first and last name
+                    const nameParts = participant.name.split(' ');
+                    const firstName = nameParts[0] || '';
+                    const lastName = nameParts.slice(1).join(' ') || '';
+                    
+                    // Apply search filter
+                    const matchesSearch = participant.name.toLowerCase().includes(searchTerm);
+                    
+                    // Apply first name filter
+                    const matchesFirstName = !firstNameFilterValue || 
+                        (firstName && firstName.charAt(0).toUpperCase() === firstNameFilterValue);
+                    
+                    // Apply last name filter
+                    const matchesLastName = !lastNameFilterValue || 
+                        (lastName && lastName.charAt(0).toUpperCase() === lastNameFilterValue);
+                    
+                    return matchesSearch && matchesFirstName && matchesLastName;
+                });
 
-const angemeldetCount = sortedParticipants.filter(p => p.status !== 'available').length;
-document.getElementById('participant-count').textContent = angemeldetCount;
+                const angemeldetCount = sortedParticipants.filter(p => p.status !== 'available').length;
+                document.getElementById('participant-count').textContent = angemeldetCount;
 
                 sortedParticipants.forEach(participantData => {
                     const listItem = document.createElement('li');
@@ -1607,12 +1697,12 @@ document.getElementById('participant-count').textContent = angemeldetCount;
 
                         const header = jsonRows[0].map(h => h.trim());
                         // Define expected headers for mapping (updated to include Anmeldeart)
-                        const expectedHeader = ['Name', 'Vorname', 'Straße', 'Ort', 'Tel.', 'Darf alleine nach Hause?', 'Bezahlt?', 'Anmeldeart'];
+                        const expectedHeader = ['Name', 'Vorname', 'Straße', 'Ort', 'Tel.', 'Darf alleine nach Hause', 'Bezahlt', 'Anmeldeart'];
                         
                         // Validate headers - now stricter, requires all specified headers
-                        const hasAllRequiredHeaders = ['Name', 'Vorname', 'Straße', 'Ort', 'Tel.', 'Darf alleine nach Hause?', 'Bezahlt?'].every(h => header.includes(h));
+                        const hasAllRequiredHeaders = ['Name', 'Vorname', 'Straße', 'Ort', 'Tel.', 'Darf alleine nach Hause', 'Bezahlt'].every(h => header.includes(h));
                         if (!hasAllRequiredHeaders) {
-                            showAdminMessage(importParticipantsMessage, `Ungültiges Excel-Header-Format. Erwartete Pflichtfelder: Name,Vorname,Straße,Ort,Tel.,Darf alleine nach Hause?,Bezahlt?`, true);
+                            showAdminMessage(importParticipantsMessage, `Ungültiges Excel-Header-Format. Erwartete Pflichtfelder: Name,Vorname,Straße,Ort,Tel.,Darf alleine nach Hause,Bezahlt`, true);
                             return;
                         }
 
@@ -1639,8 +1729,8 @@ document.getElementById('participant-count').textContent = angemeldetCount;
                                     city: values[header.indexOf('Ort')] || '',
                                     phone: values[header.indexOf('Tel.')] ? String(values[header.indexOf('Tel.')]).trim() : '', // Ensure phone is string
                                     // Convert 'Ja'/'Nein' or 'TRUE'/'FALSE' to boolean, case-insensitive
-                                    paid: (String(values[header.indexOf('Bezahlt?')]).toLowerCase() === 'ja' || String(values[header.indexOf('Bezahlt?')]).toLowerCase() === 'true'),
-                                    canGoHomeAlone: (String(values[header.indexOf('Darf alleine nach Hause?')]).toLowerCase() === 'ja' || String(values[header.indexOf('Darf alleine nach Hause?')]).toLowerCase() === 'true'),
+                                    paid: (String(values[header.indexOf('Bezahlt')]).toLowerCase() === 'ja' || String(values[header.indexOf('Bezahlt')]).toLowerCase() === 'true'),
+                                    canGoHomeAlone: (String(values[header.indexOf('Darf alleine nach Hause')]).toLowerCase() === 'ja' || String(values[header.indexOf('Darf alleine nach Hause')]).toLowerCase() === 'true'),
                                     pickedUpBy: '',
                                     activityHistory: [],
                                     comments: [] // NEW: Initialize comments for imported participants
@@ -1735,6 +1825,19 @@ document.getElementById('participant-count').textContent = angemeldetCount;
                         showAdminMessage(importParticipantsMessage, "Alle Teilnehmerdaten erfolgreich zurückgesetzt.", false);
                     }
                 );
+            });
+
+            // Event listeners for filter changes
+            firstNameFilter.addEventListener('change', renderParticipantList);
+            lastNameFilter.addEventListener('change', renderParticipantList);
+            participantSearchInput.addEventListener('input', renderParticipantList);
+            
+            // Reset filters button
+            resetFiltersButton.addEventListener('click', () => {
+                firstNameFilter.value = '';
+                lastNameFilter.value = '';
+                participantSearchInput.value = '';
+                renderParticipantList();
             });
 
             // Initialisierung
