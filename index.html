@@ -136,7 +136,22 @@
         .info-icon:hover {
             color: #3b82f6; /* Blue-500 */
         }
-
+        
+        /* Pickup Confirmation Modal Styles */
+        #pickup-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease-out;
+        }
+        
+        #pickup-modal.show {
+            transform: translateY(0);
+        }
+                
         /* NEW: Comment icon style */
         .comment-icon {
             background-color: #3b82f6; /* Blue-500 */
