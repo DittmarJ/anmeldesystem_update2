@@ -136,22 +136,7 @@
         .info-icon:hover {
             color: #3b82f6; /* Blue-500 */
         }
-        
-        /* Pickup Confirmation Modal Styles */
-        #pickup-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            transform: translateY(-100%);
-            transition: transform 0.3s ease-out;
-        }
-        
-        #pickup-modal.show {
-            transform: translateY(0);
-        }
-                
+
         /* NEW: Comment icon style */
         .comment-icon {
             background-color: #3b82f6; /* Blue-500 */
@@ -168,13 +153,30 @@
             flex-shrink: 0;
             cursor: help; /* Indicate it's informational */
         }
+        
+        #instructions-screen {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#instructions-screen p {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
     </style>
 </head>
 <body class="antialiased">
     <div id="app-container" class="bg-white rounded-xl shadow-lg p-6 w-full max-w-4xl mx-auto transform transition-all duration-300">
-        <!-- Login Screen -->
-        <div id="login-screen" class="space-y-6">
-            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Ferienprogramm</h1>
+		<!-- Login Screen -->
+		<div id="login-screen" class="space-y-3">
+		<div class="flex flex-col items-center mb-2">
+        <div class="h-1"></div>  <!-- Leere Zeile -->
+        <img src="https://raw.githubusercontent.com/DittmarJ/anmeldesystem_update2/81a13401c99e7f3f1d729472a6ca3d21ef9ad3c8/tuttikiesi-logo-2.png" 
+             alt="Tuttikiesi Logo"
+             class="h-20 object-contain mt-2 mb-2">  <!-- Logo mit Abständen -->
+		</div>
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Anmeldesystem Ferienprogramm</h1>
             <p class="text-center text-gray-600 mb-8">Bitte gib den Zugangscode ein.</p>
 
             <!-- Inner container for login screen content to keep it compact -->
@@ -209,13 +211,23 @@
             </div>
         </div>
 
-        <!-- Main Content Screen (for Betreuer - initially hidden) -->
-        <div id="main-content-screen" class="space-y-6 hidden">
-            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Ferienprogramm An-/Abmeldung (Betreuer)</h2>
-            <p class="text-center text-gray-600 mb-8">
-                Willkommen, <span id="betreuer-name-display"></span>! Wische auf einem Teilnehmer nach links, um den An-/Abmelde-Button zu enthüllen. Klicke auf den Button, um Teilnehmer an oder abzumelden. Unter dem Infobutton kannst du Details einsehen und Kommentare erstellen. Sobald ein Kommentar bei einem Teilnehmer hinterlegt ist, findet sich ein (C) vor dem Infobutton. **Die Änderungen werden automatisch gespeichert.**
-            </p>
+		 <!-- Main Content Screen -->
+		<div id="main-content-screen" class="space-y-6 hidden">
+   <!-- Leere Zeile + Logo -->
+    <div class="flex flex-col items-center">
+        <div class="h-2"></div>  <!-- Leere Zeile -->
+        <img src="https://raw.githubusercontent.com/DittmarJ/anmeldesystem_update2/81a13401c99e7f3f1d729472a6ca3d21ef9ad3c8/tuttikiesi-logo-2.png" 
+             alt="Tuttikiesi Logo"
+             class="h-20 object-contain mt-2 mb-2">  <!-- Logo mit Abständen -->
+    </div>
 
+			<h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Ferienprogramm An-/Abmeldung (Betreuer)</h2>
+			
+			<p class="text-center text-gray-600 mb-8">
+				Willkommen, <span id="betreuer-name-display"></span>! – 
+				<a href="#" id="instructions-link" class="text-blue-500 hover:text-blue-700 underline">für weitere Instruktionen klicken</a>
+			</p>
+				
             <!-- Action feedback message from top -->
             <div id="action-feedback-message" class="fixed top-0 left-0 w-full bg-green-500 text-white text-center py-3 transform -translate-y-full transition-all duration-500 ease-out z-50 shadow-lg">
                 <!-- Message will be set by JS -->
@@ -228,6 +240,18 @@
                 Abmelden
             </button>
         </div>
+
+            
+            <!-- Neue Anweisungsseite -->
+		<div id="instructions-screen" class="hidden p-4 bg-white rounded-lg shadow-md">
+			<h3 class="text-xl font-bold mb-4">Anmelde-Anleitung</h3>
+			<p class="mb-4">Wische auf einem Teilnehmer nach links, um den An-/Abmelde-Button zu enthüllen.</p>
+			<p class="mb-4">Klicke auf den Button, um Teilnehmer an oder abzumelden.</p>
+			<p class="mb-4">Unter dem Infobutton kannst du Details einsehen und Kommentare erstellen.</p>
+			<p class="mb-4">Sobald ein Kommentar bei einem Teilnehmer hinterlegt ist, findet sich ein (C) vor dem Infobutton.</p>
+			<p class="mb-4">Die Änderungen werden automatisch gespeichert.</p>
+			<button id="close-instructions" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Zurück</button>
+		</div>
 
         <!-- Admin Content Screen (new, initially hidden) -->
         <div id="admin-content-screen" class="space-y-6 hidden">
@@ -297,7 +321,10 @@
                             <input type="checkbox" id="new-participant-can-go-home-alone" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                             <label for="new-participant-can-go-home-alone" class="ml-2 block text-sm text-gray-900">Darf alleine nach Hause</label>
                         </div>
-                        <button id="add-participant-manual-button" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg w-full transition-all duration-200">Teilnehmer hinzufügen</button>
+                        <div class="flex space-x-2">
+    <button id="add-participant-manual-button" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg w-1/2 transition-all duration-200">Teilnehmer hinzufügen</button>
+    <button id="add-and-signin-participant-button" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg w-1/2 transition-all duration-200">Hinzufügen & Anmelden</button>
+</div>
                         <div id="add-participant-manual-message" class="mt-2 text-sm text-center hidden"></div>
                     </div>
 
@@ -348,14 +375,13 @@
 
         <!-- Unified Participant List Container - Moved to be a direct child of app-container, hidden by default -->
         <!-- This container will be toggled visible/hidden based on active screen/admin tab -->
-        <div id="unified-participant-container" class="min-h-[200px] space-y-2 mt-6 hidden">
-            <!-- Search Input -->
-            <input type="text" id="participant-search-input" placeholder="Teilnehmer suchen..." class="w-full p-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <ul id="unified-participant-list" class="space-y-2">
-                <!-- All participants will be rendered here -->
-            </ul>
-            <p id="no-participants-message-unified" class="text-center text-gray-500 text-sm mt-4 hidden">Noch keine Teilnehmer vorhanden.</p>
-        </div>
+		<div id="unified-participant-container" class="min-h-[200px] space-y-2 mt-6 hidden">
+					<input type="text" id="participant-search-input" placeholder="Teilnehmer suchen..." class="w-full p-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+					<p class="text-sm text-gray-600 mb-2">Angemeldete Teilnehmer: <span id="participant-count" class="font-semibold text-blue-600">0</span></p>
+					<ul id="unified-participant-list" class="space-y-2">
+						</ul>
+					<p id="no-participants-message-unified" class="text-center text-gray-500 text-sm mt-4 hidden">Noch keine Teilnehmer vorhanden.</p>
+				</div>
 
         <!-- Delete Confirmation Modal (Reused for other confirmations) -->
         <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -455,38 +481,26 @@
             </div>
         </div>
 
-<!-- Pickup Confirmation Modal - Now positioned at top -->
-<div id="pickup-modal" class="hidden">
-    <div class="bg-white rounded-b-lg shadow-xl w-full max-w-md mx-auto p-6">
-        <h3 class="text-xl font-bold mb-4 text-gray-800">Teilnehmer abholen</h3>
-        <p class="mb-4">Bitte bestätige, wer <span id="pickup-participant-name" class="font-semibold"></span> abgeholt hat:</p>
-        
-        <div class="space-y-3 mb-6">
-            <div>
-                <label for="pickup-person-select" class="block text-sm font-medium text-gray-700 mb-1">Abholperson auswählen:</label>
-                <select id="pickup-person-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Bitte auswählen</option>
-                    <option value="Mutter">Mutter</option>
-                    <option value="Vater">Vater</option>
-                    <option value="Oma">Oma</option>
-                    <option value="Opa">Opa</option>
-                    <option value="Geschwister">Geschwister</option>
-                    <option value="Sonstige">Sonstige (bitte angeben)</option>
-                </select>
-            </div>
-            <div id="custom-pickup-person-container" class="hidden">
-                <label for="custom-pickup-person-input" class="block text-sm font-medium text-gray-700 mb-1">Name der abholenden Person:</label>
-                <input type="text" id="custom-pickup-person-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Name der abholenden Person">
-            </div>
-        </div>
+			<!-- Pickup Confirmation Modal -->
+			<div id="pickup-modal" class="fixed top-0 left-0 right-0 z-50 hidden">
+				<div class="bg-white rounded-b-lg shadow-xl w-full max-w-md mt-4 mx-auto p-6">
+					<h3 class="text-xl font-bold mb-4 text-gray-800">Teilnehmer abholen</h3>
+					<p class="mb-4">Bitte bestätige, wer <span id="pickup-participant-name" class="font-semibold"></span> abgeholt hat:</p>
 
-        <div class="flex justify-end space-x-3">
-            <button id="cancel-pickup" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg">Abbrechen</button>
-            <button id="confirm-pickup" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg">Bestätigen</button>
-        </div>
-        <div id="pickup-message-box" class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden text-center" role="alert"></div>
-    </div>
-</div>
+                
+                <div class="space-y-3 mb-6">
+                    <div>
+                        <label for="pickup-person-select" class="block text-sm font-medium text-gray-700 mb-1">Abholperson auswählen:</label>
+                        <select id="pickup-person-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Bitte auswählen</option>
+                            <option value="Mutter">Mutter</option>
+                            <option value="Vater">Vater</option>
+                            <option value="Oma">Oma</option>
+                            <option value="Opa">Opa</option>
+                            <option value="Geschwister">Geschwister</option>
+                            <option value="Sonstige">Sonstige (bitte angeben)</option>
+                        </select>
+                    </div>
                     <div id="custom-pickup-person-container" class="hidden">
                         <label for="custom-pickup-person-input" class="block text-sm font-medium text-gray-700 mb-1">Name der abholenden Person:</label>
                         <input type="text" id="custom-pickup-person-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Name der abholenden Person">
@@ -599,6 +613,8 @@
             const newParticipantPaidCheckbox = document.getElementById('new-participant-paid');
             const newParticipantCanGoHomeAloneCheckbox = document.getElementById('new-participant-can-go-home-alone');
             const addParticipantManualButton = document.getElementById('add-participant-manual-button');
+
+            
             const addParticipantManualMessage = document.getElementById('add-participant-manual-message');
             const importParticipantsFileInput = document.getElementById('import-participants-file-input');
             const importParticipantsButton = document.getElementById('import-participants-button');
@@ -1055,7 +1071,6 @@
 
             function renderParticipantList() {
                 unifiedParticipantList.innerHTML = '';
-                let hasParticipants = false;
 
                 const searchTerm = participantSearchInput.value.toLowerCase();
 
@@ -1067,6 +1082,8 @@
                     return nameA.localeCompare(nameB);
                 }).filter(participant => participant.name.toLowerCase().includes(searchTerm));
 
+const angemeldetCount = sortedParticipants.filter(p => p.status !== 'available').length;
+document.getElementById('participant-count').textContent = angemeldetCount;
 
                 sortedParticipants.forEach(participantData => {
                     const listItem = document.createElement('li');
@@ -1076,7 +1093,7 @@
 
                     const actionButtonText = (participantData.status === 'available') ? 'Anmelden' : 'Abmelden';
                     const buttonClass = (participantData.status === 'available') ? 'anmelden-button' : 'abmelden-button';
-                    
+                                        
                     // Logic for dot color
                     let dotColorClass = '';
                     if (participantData.status === 'signedIn') {
@@ -1523,7 +1540,7 @@
                     showAdminMessage(addParticipantManualMessage, "Bitte alle Felder ausfüllen (Vorname, Nachname, Straße, Ort, Tel.).", true);
                     return;
                 }
-
+                
                 const newParticipant = {
                     id: Date.now().toString(),
                     name: name,
@@ -1720,12 +1737,6 @@
                 );
             });
 
-            // Event listener for search input
-            participantSearchInput.addEventListener('input', () => {
-                renderParticipantList();
-            });
-
-
             // Initialisierung
             loadUsers();
             loadParticipants();
@@ -1733,12 +1744,88 @@
             updateCodeDisplay();
             renderUserList();
             // Do not call renderParticipantList here, it will be called when the correct screen is shown (Betreuer or Admin Overview)
-        </script>
-        <script>
-            // Zusätzliche Tailwind CSS-Klassen für Tastenfeld-Buttons für konsistentes Styling
-            document.querySelectorAll('.keypad-button').forEach(button => {
-                button.classList.add('bg-gray-200', 'hover:bg-gray-300', 'active:bg-gray-400', 'text-gray-800', 'font-semibold', 'py-4', 'px-6', 'rounded-lg', 'shadow-md', 'transition-all', 'duration-200', 'text-2xl');
+
+            // ▼▼▼ NEUEN CODE HIER EINFÜGEN ▼▼▼
+            // Anweisungs-Link und Modal
+            const instructionsLink = document.getElementById('instructions-link');
+            const instructionsScreen = document.getElementById('instructions-screen');
+            const closeInstructionsButton = document.getElementById('close-instructions');
+
+            instructionsLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                mainContentScreen.classList.add('hidden');
+                instructionsScreen.classList.remove('hidden');
+            });
+
+            closeInstructionsButton.addEventListener('click', () => {
+                instructionsScreen.classList.add('hidden');
+                mainContentScreen.classList.remove('hidden');
             });
         </script>
+        
+<script>
+    // Zusätzliche Tailwind CSS-Klassen für Tastenfeld-Buttons für konsistentes Styling
+    document.querySelectorAll('.keypad-button').forEach(button => {
+        button.classList.add('bg-gray-200', 'hover:bg-gray-300', 'active:bg-gray-400', 'text-gray-800', 'font-semibold', 'py-4', 'px-6', 'rounded-lg', 'shadow-md', 'transition-all', 'duration-200', 'text-2xl');
+    });
+    
+    // Funktion zum Leeren des Teilnehmer-Formulars
+    function clearAddParticipantForm() {
+        document.getElementById('new-participant-first-name').value = '';
+        document.getElementById('new-participant-last-name').value = '';
+        document.getElementById('new-participant-regtype').value = 'Tagesanmeldung';
+        document.getElementById('new-participant-street').value = '';
+        document.getElementById('new-participant-city').value = '';
+        document.getElementById('new-participant-phone').value = '';
+        document.getElementById('new-participant-paid').checked = false;
+        document.getElementById('new-participant-can-go-home-alone').checked = false;
+    }
+
+    // Event-Listener für "Hinzufügen & Anmelden"
+    document.getElementById('add-and-signin-participant-button').addEventListener('click', function() {
+        const firstName = document.getElementById('new-participant-first-name').value.trim();
+        const lastName = document.getElementById('new-participant-last-name').value.trim();
+        const regType = document.getElementById('new-participant-regtype').value;
+        const street = document.getElementById('new-participant-street').value.trim();
+        const city = document.getElementById('new-participant-city').value.trim();
+        const phone = document.getElementById('new-participant-phone').value.trim();
+        const paid = document.getElementById('new-participant-paid').checked;
+        const canGoHomeAlone = document.getElementById('new-participant-can-go-home-alone').checked;
+
+        if (!firstName || !lastName) {
+            showAdminMessage(document.getElementById('add-participant-manual-message'), 'Bitte fülle Vor- und Nachname aus.', true);
+            return;
+        }
+
+        const newParticipant = {
+            id: Date.now().toString(),
+            name: `${firstName} ${lastName}`,
+            status: 'signedIn',
+            savedStatus: 'signedIn',
+            registrationType: regType,
+            street: street,
+            city: city,
+            phone: phone,
+            paid: paid,
+            canGoHomeAlone: canGoHomeAlone,
+            pickedUpBy: null,
+            comments: [],
+            activityHistory: [{
+                type: 'angemeldet',
+                timestamp: new Date().toISOString(),
+                by: currentLoggedInUsername || 'System'
+            }]
+        };
+
+        participants.push(newParticipant);
+        saveParticipantsToLocalStorage();
+        
+        showAdminMessage(document.getElementById('add-participant-manual-message'), 
+            `Teilnehmer "${firstName} ${lastName}" wurde hinzugefügt und angemeldet.`, false);
+        renderParticipantList();
+        clearAddParticipantForm();
+    });
+</script>
+
     </body>
 </html>
